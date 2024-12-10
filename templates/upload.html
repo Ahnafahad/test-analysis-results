@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">Add a New Test</h1>
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data">
+      <div class="form-group">
+        <label>Test Name</label>
+        <input type="text" class="form-control" name="test_name" required placeholder="e.g. Test 1">
+      </div>
+      <div class="form-group">
+        <label>Excel File</label>
+        <input type="file" class="form-control-file" name="excel_file" required>
+        <small class="form-text text-muted">
+          Upload the Excel file with required format.
+        </small>
+      </div>
+      <button class="btn btn-success mt-3">Upload and Analyze</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

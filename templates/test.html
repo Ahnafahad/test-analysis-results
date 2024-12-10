@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">Test: {{ test_name }}</h1>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-dark text-light">
+    <h5 class="mb-0">Student Results</h5>
+  </div>
+  <div class="card-body">
+    <table class="table table-bordered table-hover">
+      <thead class="thead-dark">
+        <tr>
+          <th>Rank</th>
+          <th>ID</th>
+          <th>Name</th>
+          <th>1 Marks</th>
+          <th>2 Marks</th>
+          <th>3 Marks</th>
+          <th>Total Marks in MCQ</th>
+          <th>Rank in MCQ</th>
+          {% if essays_included %}
+          <th>Essay 1</th>
+          <th>Essay 2</th>
+          <th>Essay 3</th>
+          <th>Essay 4</th>
+          {% endif %}
+          <th>Total Marks</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for s in students %}
+        <tr>
+          <td>{{ s["Rank"] if s["Rank"] == s["Rank"] else "N/A" }}</td>
+          <td>{{ s["ID"] if s["ID"] == s["ID"] else "" }}</td>
+          <td>{{ s["Name"] if s["Name"] == s["Name"] else "Absent" }}</td>
+          <td>{{ s["1 Marks"] if "1 Marks" in s else "" }}</td>
+          <td>{{ s["2 Marks"] if "2 Marks" in s else "" }}</td>
+          <td>{{ s["3 Marks"] if "3 Marks" in s else "" }}</td>
+          <td>{{ s["Total Marks in MCQ"] if "Total Marks in MCQ" in s else "" }}</td>
+          <td>{{ s["Rank in MCQ"] if "Rank in MCQ" in s else "" }}</td>
+          {% if essays_included %}
+          <td>{{ s["Essay 1"] if "Essay 1" in s else "" }}</td>
+          <td>{{ s["Essay 2"] if "Essay 2" in s else "" }}</td>
+          <td>{{ s["Essay 3"] if "Essay 3" in s else "" }}</td>
+          <td>{{ s["Essay 4"] if "Essay 4" in s else "" }}</td>
+          {% endif %}
+          <td>{{ s["Total Marks"] if "Total Marks" in s else "" }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

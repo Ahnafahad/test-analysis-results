@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">All Test Series</h1>
+<div class="card shadow-sm">
+  <div class="card-body">
+    <table class="table table-hover align-middle">
+      <thead class="thead-dark">
+        <tr>
+          <th>Series Name</th>
+          <th>Number of Tests</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for s in series_list %}
+        <tr>
+          <td>{{ s.name }}</td>
+          <td>{{ s.tests|length }}</td>
+          <td>
+            <a class="btn btn-primary btn-sm" href="{{ url_for('view_series', series_id=s.id) }}">View</a>
+            <form action="{{ url_for('delete_series', series_id=s.id) }}" method="post" class="d-inline" onsubmit="return confirm('Delete this series?')">
+              <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <a class="btn btn-success mt-3" href="{{ url_for('create_series') }}">+ Create New Series</a>
+  </div>
+</div>
+{% endblock %}

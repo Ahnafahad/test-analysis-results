@@ -1,0 +1,19 @@
+body {
+    background-color: #f8f9fa;
+  }
+  
+  .table thead th {
+    vertical-align: middle;
+    text-align: center;
+  }
+  
+  .card-header h5 {
+    margin: 0;
+  }
+  
+  pre {
+    background: #f0f0f0;
+    padding: 10px;
+    border-radius: 4px;
+  }
+  

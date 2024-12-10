@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">Create New Series</h1>
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form method="post">
+      <div class="form-group">
+        <label>Series Name</label>
+        <input type="text" class="form-control" name="series_name" required placeholder="e.g. Midterm Series">
+      </div>
+      <hr>
+      <h5>Section Names</h5>
+      <p>These will remain consistent across the entire series.</p>
+      <div class="form-group">
+        <label>Section 1 Name</label>
+        <input type="text" class="form-control" name="sec1_name" placeholder="e.g. English" required>
+      </div>
+      <div class="form-group">
+        <label>Section 2 Name</label>
+        <input type="text" class="form-control" name="sec2_name" placeholder="e.g. Math" required>
+      </div>
+      <div class="form-group">
+        <label>Section 3 Name</label>
+        <input type="text" class="form-control" name="sec3_name" placeholder="e.g. Science" required>
+      </div>
+      <hr>
+      <div class="form-group form-check">
+        <input type="checkbox" class="form-check-input" name="essays_included">
+        <label class="form-check-label">Include Essays?</label>
+      </div>
+      <button class="btn btn-success">Create</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

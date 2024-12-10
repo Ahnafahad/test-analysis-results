@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">{{ student_name }}</h1>
+
+<div class="row">
+  <div class="col-md-6 mb-4">
+    <div class="card shadow-sm">
+      <div class="card-header bg-info text-light">
+        <h5 class="mb-0">Marks Trend</h5>
+      </div>
+      <div class="card-body">
+        <div id="marks-graph"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 mb-4">
+    <div class="card shadow-sm">
+      <div class="card-header bg-info text-light">
+        <h5 class="mb-0">Rank Trend</h5>
+      </div>
+      <div class="card-body">
+        <div id="rank-graph"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var marksData = {{ marks_graphJSON|safe }};
+Plotly.newPlot('marks-graph', marksData.data, marksData.layout);
+
+var rankData = {{ rank_graphJSON|safe }};
+Plotly.newPlot('rank-graph', rankData.data, rankData.layout);
+</script>
+
+<div class="card shadow-sm mt-4">
+  <div class="card-header bg-dark text-light">
+    <h5 class="mb-0">Last Test Details</h5>
+  </div>
+  <div class="card-body">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Section</th>
+          <th>Correct/Wrong/Marks</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for sec_id, sec_name in sections.items() %}
+        <tr>
+          <td><strong>{{ sec_name }}</strong></td>
+          <td>
+            Correct: {{ last_test[sec_id ~ " Correct"] if (sec_id ~ " Correct") in last_test else "" }} |
+            Wrong: {{ last_test[sec_id ~ " Wrong"] if (sec_id ~ " Wrong") in last_test else "" }} |
+            Marks: {{ last_test[sec_id ~ " Marks"] if (sec_id ~ " Marks") in last_test else "" }}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% if essays_included %}
+    <h5>Essay Scores</h5>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Essay 1</th>
+          <th>Essay 2</th>
+          <th>Essay 3</th>
+          <th>Essay 4</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{ last_test["Essay 1"] if "Essay 1" in last_test else "" }}</td>
+          <td>{{ last_test["Essay 2"] if "Essay 2" in last_test else "" }}</td>
+          <td>{{ last_test["Essay 3"] if "Essay 3" in last_test else "" }}</td>
+          <td>{{ last_test["Essay 4"] if "Essay 4" in last_test else "" }}</td>
+        </tr>
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
