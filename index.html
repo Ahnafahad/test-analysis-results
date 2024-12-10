@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Consolidated Analysis</title>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+.card { margin-bottom: 1rem; }
+.hidden { display: none; }
+</style>
+</head>
+<body class="bg-light">
+
+<div class="container mt-4 mb-5">
+<h1 class="mb-4">Consolidated Analysis</h1>
+<p>Select a student to begin exploring their performance.</p>
+
+<div id="students-container" class="mb-4"></div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<script>
+// students_data is a JSON string passed from the backend
+var students_data = {"680521": {"name": "Anas Kamal", "series": {"9172b9b2-ed8f-43b7-8882-6d66ea168b28": {"series_name": "BUP Mock", "sections": {"1": "English", "2": "Maths", "3": "Analytical"}, "essays_included": false, "tests": {"83f8cfcf-577c-413f-9ad0-2295fbb90547": {"test_name": "BUP Mock 3", "student_data": {"ID": 680521, "Name": "Anas Kamal", "SeriesID": "9172b9b2-ed8f-43b7-8882-6d66ea168b28", "TestID": "83f8cfcf-577c-413f-9ad0-2295fbb90547", "TestName": "BUP Mock 3", "1 Correct": 12.0, "1 Wrong": 5.0, "1 Marks": 9.5, "1 Percentage": 38.0, "2 Correct": 5.0, "2 Wrong": 1.0, "2 Marks": 4.5, "2 Percentage": 11.25, "3 Correct": 2.0, "3 Wrong": 2.0, "3 Marks": 1.0, "3 Percentage": 10, "Total Marks": 15.0, "Total Percentage": 20.0, "Rank": 12, "Total Question": NaN, "Penalty": NaN, "Total Question 1": "Total Question 2", "25": 40, "Unnamed: 19": NaN, "Total Marks in MCQ": 15.0, "Rank in MCQ": 12, "Unnamed: 20": NaN}, "analysis": "Anas Kamal (Rank 12, Total Marks: 15.0)\n\nGap from Top 5: -12.0 marks\n\nSection-wise Analysis:\n\nEnglish: 70.59% accuracy (-10.53% vs class), -2.07 less questions attempted\nMaths: 83.33% accuracy (+24.48% vs class), -7.93 less questions attempted\nAnalytical: 50.0% accuracy (+15.62% vs class), +1.87 more questions attempted\n\nNeeds Improvement: Falling behind top performers.\nStrategy: Increase accuracy and attempt rate in weaker sections.\n", "class_metrics": {"1": {"class_accuracy": 81.11888111888112, "class_attempts": 19.066666666666666}, "2": {"class_accuracy": 58.85167464114832, "class_attempts": 13.933333333333334}, "3": {"class_accuracy": 34.375, "class_attempts": 2.1333333333333333}}, "improvement": {"marks": "N/A", "rank": "N/A"}}}, "marks_trend": [15.0], "rank_trend": [12], "test_names": ["BUP Mock 3"]}}}, "341368": {"name": "Anayed Ahmed", "series": {"9172b9b2-ed8f-43b7-8882-6d66ea168b28": {"series_name": "BUP Mock", "sections": {"1": "English", "2": "Maths", "3": "Analytical"}, "essays_included": false, "tests": {"83f8cfcf-577c-413f-9ad0-2295fbb90547": {"test_name": "BUP Mock 3", "student_data": {"ID": 341368, "Name": "Anayed Ahmed", "SeriesID": "9172b9b2-ed8f-43b7-8882-6d66ea168b28", "TestID": "83f8cfcf-577c-413f-9ad0-2295fbb90547", "TestName": "BUP Mock 3", "1 Correct": 12.0, "1 Wrong": 8.0, "1 Marks": 8.0, "1 Percentage": 32.0, "2 Correct": 6.0, "2 Wrong": 9.0, "2 Marks": 1.5, "2 Percentage": 3.75, "3 Correct": 1.0, "3 Wrong": 0.0, "3 Marks": 1.0, "3 Percentage": 10, "Total Marks": 10.5, "Total Percentage": 14.0, "Rank": 14, "Total Question": NaN, "Penalty": NaN, "Total Question 1": "Total Question 3", "25": 10, "Unnamed: 19": NaN, "Total Marks in MCQ": 10.5, "Rank in MCQ": 14, "Unnamed: 20": NaN}, "analysis": "Anayed Ahmed (Rank 14, Total Marks: 10.5)\n\nGap from Top 5: -16.5 marks\n\nSection-wise Analysis:\n\nEnglish: 60.0% accuracy (-21.12% vs class), +0.93 more questions attempted\nMaths: 40.0% accuracy (-18.85% vs class), +1.07 more questions attempted\nAnalytical: 100.0% accuracy (+65.62% vs class), -1.13 less questions attempted\n\nNeeds Improvement: Falling behind top performers.\nStrategy: Increase accuracy and attempt rate in weaker sections.\n", "class_metrics": {"1": {"class_accuracy": 81.11888111888112, "class_attempts": 19.066666666666666}, "2": {"class_accuracy": 58.85167464114832, "class_attempts": 13.933333333333334}, "3": {"class_accuracy": 34.375, "class_attempts": 2.1333333333333333}}, "improvement": {"marks": "N/A", "rank": "N/A"}}}, "marks_trend": [10.5], "rank_trend": [14], "test_names": ["BUP Mock 3"]}}}, "871945": {"name": "Audrika Maisha Hosain", "series": {"9172b9b2-ed8f-43b7-8882-6d66ea168b28": {"series_name": "BUP Mock", "sections": {"1": "English", "2": "Maths", "3": "Analytical"}, "essays_included": false, "tests": {"83f8cfcf-577c-413f-9ad0-2295fbb90547": {"test_name": "BUP Mock 3", "student_data": {"ID": 871945, "Name": "Audrika Maisha Hosain", "SeriesID": "9172b9b2-ed8f-43b7-8882-6d66ea168b28", "TestID": "83f8cfcf-577c-413f-9ad0-2295fbb90547", "TestName": "BUP Mock 3", "1 Correct": 17.0, "1 Wrong": 6.0, "1 Marks": 14.0, "1 Percentage": 56.00000000000001, "2 Correct": 8.0, "2 Wrong": 9.0, "2 Marks": 3.5, "2 Percentage": 8.75, "3 Correct": 0.0, "3 Wrong": 0.0, "3 Marks": 0.0, "3 Percentage": 0, "Total Marks": 17.5, "Total Percentage": 23.33333333333333, "Rank": 8, "Total Question": NaN, "Penalty": NaN, "Total Question 1": NaN, "25": 75, "Unnamed: 19": NaN, "Total Marks in MCQ": 17.5, "Rank in MCQ": 7, "Unnamed: 20": NaN}, "analysis": "Audrika Maisha Hosain (Rank 8, Total Marks: 17.5)\n\nGap from Top 5: -9.5 marks\n\nSection-wise Analysis:\n\nEnglish: 73.91% accuracy (-7.21% vs class), +3.93 more questions attempted\nMaths: 47.06% accuracy (-11.79% vs class), +3.07 more questions attempted\nAnalytical: 0.0% accuracy (-34.38% vs class), -2.13 less questions attempted\n\nNeeds Improvement: Falling behind top performers.\nStrategy: Increase accuracy and attempt rate in weaker sections.\n", "class_metrics": {"1": {"class_accuracy": 81.11888111888112, "class_attempts": 19.066666666666666}, "2": {"class_accuracy": 58.85167464114832, "class_attempts": 13.933333333333334}, "3": {"class_accuracy": 34.375, "class_attempts": 2.1333333333333333}}, "improvement": {"marks": "N/A", "rank": "N/A"}}}, "marks_trend": [17.5], "rank_trend": [8], "test_names": ["BUP Mock 3"]}}}, "166388": {"name": "Farhan Hossain", "series": {"9172b9b2-ed8f-43b7-8882-6d66ea168b28": {"series_name": "BUP Mock", "sections": {"1": "English", "2": "Maths", "3": "Analytical"}, "essays_included": false, "tests": {"83f8cfcf-577c-413f-9ad0-2295fbb90547": {"test_name": "BUP Mock 3", "student_data": {"ID": 166388, "Name": "Farhan Hossain", "SeriesID": "9172b9b2-ed8f-43b7-8882-6d66ea168b28", "TestID": "83f8cfcf-577c-413f-9ad0-2295fbb90547", "TestName": "BUP Mock 3", "1 Correct": 20.0, "1 Wrong": 1.0, "1 Marks": 19.5, "1 Percentage": 78.0, "2 Correct": 13.0, "2 Wrong": 5.0, "2 Marks": 10.5, "2 Percentage": 26.25, "3 Correct": 3.0, "3 Wrong": 1.0, "3 Marks": 2.5, "3 Percentage": 25, "Total Marks": 32.5, "Total Percentage": 43.33333333333334, "Rank": 1, "Total Question": NaN, "Penalty": NaN, "Total Question 1": NaN, "25": NaN, "Unnamed: 19": NaN, "Total Marks in MCQ": 32.5, "Rank in MCQ": 1, "Unnamed: 20": NaN}, "analysis": "Farhan Hossain (Rank 1, Total Marks: 32.5)\n\nGap from Top 5: +5.5 marks\n\nSection-wise Analysis:\n\nEnglish: 95.24% accuracy (+14.12% vs class), +1.93 more questions attempted\nMaths: 72.22% accuracy (+13.37% vs class), +4.07 more questions attempted\nAnalytical: 75.0% accuracy (+40.62% vs class), +1.87 more questions attempted\n\nStrengths: Top performer!\nStrategy: Keep up the good work.\n", "class_metrics": {"1": {"class_accuracy": 81.11888111888112, "class_attempts": 19.066666666666666}, "2": {"class_accuracy": 58.85167464114832, "class_attempts": 13.933333333333334}, "3": {"class_accuracy": 34.375, "class_attempts": 2.1333333333333333}}, "improvement": {"marks": "N/A", "rank": "N/A"}}}, "marks_trend": [32.5], "rank_trend": [1], "test_names": ["BUP Mock 3"]}}}, "754261": {"name": "Farhan Khan", "series": {"9172b9b2-ed8f-43b7-8882-6d66ea168b28": {"series_name": "BUP Mock", "sections": {"1": "English", "2": "Maths", "3": "Analytical"}, "essays_included": false, "tests": {"83f8cfcf-577c-413f-9ad0-2295fbb90547": {"test_name": "BUP Mock 3", "student_data": {"ID": 754261, "Name": "Farhan Khan", "SeriesID": "9172b9b2-ed8f-43b7-8882-6d66ea168b28", "TestID": "83f8cfcf-577c-413f-9ad0-2295fbb90547", "TestName": "BUP Mock 3", "1 Correct": 14.0, "1 Wrong": 0.0, "1 Marks": 14.0, "1 Percentage": 56.00000000000001, "2 Correct": 8.0, "2 Wrong": 7.0, "2 Marks": 4.5, "2 Percentage": 11.25, "3 Correct": 0.0, "3 Wrong": 0.0, "3 Marks": 0.0, "3 Percentage": 0, "Total Marks": 18.5, "Total Percentage": 24.66666666666667, "Rank": 6, "Total Question": NaN, "Penalty": NaN, "Total Question 1": NaN, "25": "Penalty ", "Unnamed: 19": NaN, "Total Marks in MCQ": 18.5, "Rank in MCQ": 6, "Unnamed: 20": -0.5}, "analysis": "Farhan Khan (Rank 6, Total Marks: 18.5)\n\nGap from Top 5: -8.5 marks\n\nSection-wise Analysis:\n\nEnglish: 100.0% accuracy (+18.88% vs class), -5.07 less questions attempted\nMaths: 53.33% accuracy (-5.52% vs class), +1.07 more questions attempted\nAnalytical: 0.0% accuracy (-34.38% vs class), -2.13 less questions attempted\n\nNeeds Improvement: Falling behind top performers.\nStrategy: Increase accuracy and attempt rate in weaker sections.\n", "class_metrics": {"1": {"class_accuracy": 81.11888111888112, "class_attempts": 19.066666666666666}, "2": {"class_accuracy": 58.85167464114832, "class_attempts": 13.933333333333334}, "3": {"class_accuracy": 34.375, "class_attempts": 2.1333333333333333}}, "improvement": {"marks": "N/A", "rank": "N/A"}}}, "marks_trend": [18.5], "rank_trend": [6], "test_names": ["BUP Mock 3"]}}}, "750246": {"name": "Kaif Kabir", "series": {"9172b9b2-ed8f-43b7-8882-6d66ea168b28": {"series_name": "BUP Mock", "sections": {"1": "English", "2": "Maths", "3": "Analytical"}, "essays_included": false, "tests": {"83f8cfcf-577c-413f-9ad0-2295fbb90547": {"test_name": "BUP Mock 3", "student_data": {"ID": 750246, "Name": "Kaif Kabir", "SeriesID": "9172b9b2-ed8f-43b7-8882-6d66ea168b28", "TestID": "83f8cfcf-577c-413f-9ad0-2295fbb90547", "TestName": "BUP Mock 3", "1 Correct": 17.0, "1 Wrong": 4.0, "1 Marks": 15.0, "1 Percentage": 60.0, "2 Correct": 6.0, "2 Wrong": 8.0, "2 Marks": 2.0, "2 Percentage": 5.0, "3 Correct": 1.0, "3 Wrong": 3.0, "3 Marks": -0.5, "3 Percentage": -5, "Total Marks": 16.5, "Total Percentage": 22.0, "Rank": 10, "Total Question": NaN, "Penalty": NaN, "Total Question 1": NaN, "25": NaN, "Unnamed: 19": NaN, "Total Marks in MCQ": 16.5, "Rank in MCQ": 9, "Unnamed: 20": NaN}, "analysis": "Kaif Kabir (Rank 10, Total Marks: 16.5)\n\nGap from Top 5: -10.5 marks\n\nSection-wise Analysis:\n\nEnglish: 80.95% accuracy (-0.17% vs class), +1.93 more questions attempted\nMaths: 42.86% accuracy (-15.99% vs class), +0.07 more questions attempted\nAnalytical: 25.0% accuracy (-9.38% vs class), +1.87 more questions attempted\n\nNeeds Improvement: Falling behind top performers.\nStrategy: Increase accuracy and attempt rate in weaker sections.\n", "class_metrics": {"1": {"class_accuracy": 81.11888111888112, "class_attempts": 19.066666666666666}, "2": {"class_accuracy": 58.85167464114832, "class_attempts": 13.933333333333334}, "3": {"class_accuracy": 34.375, "class_attempts": 2.1333333333333333}}, "improvement": {"marks": "N/A", "rank": "N/A"}}}, "marks_trend": [16.5], "rank_trend": [10], "test_names": ["BUP Mock 3"]}}}, "346354": {"name": "Mahmeed Saleh Ahsan", "series": {"9172b9b2-ed8f-43b7-8882-6d66ea168b28": {"series_name": "BUP Mock", "sections": {"1": "English", "2": "Maths", "3": "Analytical"}, "essays_included": false, "tests": {"83f8cfcf-577c-413f-9ad0-2295fbb90547": {"test_name": "BUP Mock 3", "student_data": {"ID": 346354, "Name": "Mahmeed Saleh Ahsan", "SeriesID": "9172b9b2-ed8f-43b7-8882-6d66ea168b28", "TestID": "83f8cfcf-577c-413f-9ad0-2295fbb90547", "TestName": "BUP Mock 3", "1 Correct": NaN, "1 Wrong": NaN, "1 Marks": 0.0, "1 Percentage": 0.0, "2 Correct": NaN, "2 Wrong": NaN, "2 Marks": 0.0, "2 Percentage": 0.0, "3 Correct": NaN, "3 Wrong": NaN, "3 Marks": 0.0, "3 Percentage": 0, "Total Marks": NaN, "Total Percentage": 0.0, "Rank": 17, "Total Question": NaN, "Penalty": NaN, "Total Question 1": NaN, "25": NaN, "Unnamed: 19": NaN, "Total Marks in MCQ": 0.0, "Rank in MCQ": 16, "Unnamed: 20": NaN}, "analysis": "Mahmeed Saleh Ahsan (Rank 17, Total Marks: 0)\n\nGap from Top 5: -27.0 marks\n\nSection-wise Analysis:\n\nEnglish: 0.0% accuracy (-81.12% vs class), nan less questions attempted\nMaths: 0.0% accuracy (-58.85% vs class), nan less questions attempted\nAnalytical: 0.0% accuracy (-34.38% vs class), nan less questions attempted\n\nNeeds Improvement: Falling behind top performers.\nStrategy: Increase accuracy and attempt rate in weaker sections.\n", "class_metrics": {"1": {"class_accuracy": 81.11888111888112, "class_attempts": 19.066666666666666}, "2": {"class_accuracy": 58.85167464114832, "class_attempts": 13.933333333333334}, "3": {"class_accuracy": 34.375, "class_attempts": 2.1333333333333333}}, "improvement": {"marks": "N/A", "rank": "N/A"}}}, "marks_trend": [0], "rank_trend": [17], "test_names": ["BUP Mock 3"]}}}, "694668": {"name": "Nazifa Rahman Khan", "series": {"9172b9b2-ed8f-43b7-8882-6d66ea168b28": {"series_name": "BUP Mock", "sections": {"1": "English", "2": "Maths", "3": "Analytical"}, "essays_included": false, "tests": {"83f8cfcf-577c-413f-9ad0-2295fbb90547": {"test_name": "BUP Mock 3", "student_data": {"ID": 694668, "Name": "Nazifa Rahman Khan", "SeriesID": "9172b9b2-ed8f-43b7-8882-6d66ea168b28", "TestID": "83f8cfcf-577c-413f-9ad0-2295fbb90547", "TestName": "BUP Mock 3", "1 Correct": 18.0, "1 Wrong": 2.0, "1 Marks": 17.0, "1 Percentage": 68.0, "2 Correct": 4.0, "2 Wrong": 9.0, "2 Marks": -0.5, "2 Percentage": -1.25, "3 Correct": 1.0, "3 Wrong": 5.0, "3 Marks": -1.5, "3 Percentage": -15, "Total Marks": 15.0, "Total Percentage": 20.0, "Rank": 13, "Total Question": NaN, "Penalty": NaN, "Total Question 1": NaN, "25": NaN, "Unnamed: 19": NaN, "Total Marks in MCQ": 15.0, "Rank in MCQ": 12, "Unnamed: 20": NaN}, "analysis": "Nazifa Rahman Khan (Rank 13, Total Marks: 15.0)\n\nGap from Top 5: -12.0 marks\n\nSection-wise Analysis:\n\nEnglish: 90.0% accuracy (+8.88% vs class), +0.93 more questions attempted\nMaths: 30.77% accuracy (-28.08% vs class), -0.93 less questions attempted\nAnalytical: 16.67% accuracy (-17.7% vs class), +3.87 more questions attempted\n\nNeeds Improvement: Falling behind top performers.\nStrategy: Increase accuracy and attempt rate in weaker sections.\n", "class_metrics": {"1": {"class_accuracy": 81.11888111888112, "class_attempts": 19.066666666666666}, "2": {"class_accuracy": 58.85167464114832, "class_attempts": 13.933333333333334}, "3": {"class_accuracy": 34.375, "class_attempts": 2.1333333333333333}}, "improvement": {"marks": "N/A", "rank": "N/A"}}}, "marks_trend": [15.0], "rank_trend": [13], "test_names": ["BUP Mock 3"]}}}, "291415": {"name": "Rubaiya Zaman", "series": {"9172b9b2-ed8f-43b7-8882-6d66ea168b28": {"series_name": "BUP Mock", "sections": {"1": "English", "2": "Maths", "3": "Analytical"}, "essays_included": false, "tests": {"83f8cfcf-577c-413f-9ad0-2295fbb90547": {"test_name": "BUP Mock 3", "student_data": {"ID": 291415, "Name": "Rubaiya Zaman", "SeriesID": "9172b9b2-ed8f-43b7-8882-6d66ea168b28", "TestID": "83f8cfcf-577c-413f-9ad0-2295fbb90547", "TestName": "BUP Mock 3", "1 Correct": NaN, "1 Wrong": NaN, "1 Marks": 0.0, "1 Percentage": 0.0, "2 Correct": NaN, "2 Wrong": NaN, "2 Marks": 0.0, "2 Percentage": 0.0, "3 Correct": NaN, "3 Wrong": NaN, "3 Marks": 0.0, "3 Percentage": 0, "Total Marks": NaN, "Total Percentage": 0.0, "Rank": 18, "Total Question": NaN, "Penalty": NaN, "Total Question 1": NaN, "25": NaN, "Unnamed: 19": NaN, "Total Marks in MCQ": 0.0, "Rank in MCQ": 16, "Unnamed: 20": NaN}, "analysis": "Rubaiya Zaman (Rank 18, Total Marks: 0)\n\nGap from Top 5: -27.0 marks\n\nSection-wise Analysis:\n\nEnglish: 0.0% accuracy (-81.12% vs class), nan less questions attempted\nMaths: 0.0% accuracy (-58.85% vs class), nan less questions attempted\nAnalytical: 0.0% accuracy (-34.38% vs class), nan less questions attempted\n\nNeeds Improvement: Falling behind top performers.\nStrategy: Increase accuracy and attempt rate in weaker sections.\n", "class_metrics": {"1": {"class_accuracy": 81.11888111888112, "class_attempts": 19.066666666666666}, "2": {"class_accuracy": 58.85167464114832, "class_attempts": 13.933333333333334}, "3": {"class_accuracy": 34.375, "class_attempts": 2.1333333333333333}}, "improvement": {"marks": "N/A", "rank": "N/A"}}}, "marks_trend": [0], "rank_trend": [18], "test_names": ["BUP Mock 3"]}}}, "216338": {"name": "Safir Ahbab", "series": {"9172b9b2-ed8f-43b7-8882-6d66ea168b28": {"series_name": "BUP Mock", "sections": {"1": "English", "2": "Maths", "3": "Analytical"}, "essays_included": false, "tests": {"83f8cfcf-577c-413f-9ad0-2295fbb90547": {"test_name": "BUP Mock 3", "student_data": {"ID": 216338, "Name": "Safir Ahbab", "SeriesID": "9172b9b2-ed8f-43b7-8882-6d66ea168b28", "TestID": "83f8cfcf-577c-413f-9ad0-2295fbb90547", "TestName": "BUP Mock 3", "1 Correct": 11.0, "1 Wrong": 5.0, "1 Marks": 8.5, "1 Percentage": 34.0, "2 Correct": 12.0, "2 Wrong": 7.0, "2 Marks": 8.5, "2 Percentage": 21.25, "3 Correct": 1.0, "3 Wrong": 1.0, "3 Marks": 0.5, "3 Percentage": 5, "Total Marks": 17.5, "Total Percentage": 23.33333333333333, "Rank": 7, "Total Question": NaN, "Penalty": NaN, "Total Question 1": NaN, "25": NaN, "Unnamed: 19": NaN, "Total Marks in MCQ": 17.5, "Rank in MCQ": 7, "Unnamed: 20": NaN}, "analysis": "Safir Ahbab (Rank 7, Total Marks: 17.5)\n\nGap from Top 5: -9.5 marks\n\nSection-wise Analysis:\n\nEnglish: 68.75% accuracy (-12.37% vs class), -3.07 less questions attempted\nMaths: 63.16% accuracy (+4.31% vs class), +5.07 more questions attempted\nAnalytical: 50.0% accuracy (+15.62% vs class), -0.13 less questions attempted\n\nNeeds Improvement: Falling behind top performers.\nStrategy: Increase accuracy and attempt rate in weaker sections.\n", "class_metrics": {"1": {"class_accuracy": 81.11888111888112, "class_attempts": 19.066666666666666}, "2": {"class_accuracy": 58.85167464114832, "class_attempts": 13.933333333333334}, "3": {"class_accuracy": 34.375, "class_attempts": 2.1333333333333333}}, "improvement": {"marks": "N/A", "rank": "N/A"}}}, "marks_trend": [17.5], "rank_trend": [7], "test_names": ["BUP Mock 3"]}}}, "879668": {"name": "Sakib Muntasir Moon", "series": {"9172b9b2-ed8f-43b7-8882-6d66ea168b28": {"series_name": "BUP Mock", "sections": {"1": "English", "2": "Maths", "3": "Analytical"}, "essays_included": false, "tests": {"83f8cfcf-577c-413f-9ad0-2295fbb90547": {"test_name": "BUP Mock 3", "student_data": {"ID": 879668, "Name": "Sakib Muntasir Moon", "SeriesID": "9172b9b2-ed8f-43b7-8882-6d66ea168b28", "TestID": "83f8cfcf-577c-413f-9ad0-2295fbb90547", "TestName": "BUP Mock 3", "1 Correct": NaN, "1 Wrong": NaN, "1 Marks": 0.0, "1 Percentage": 0.0, "2 Correct": NaN, "2 Wrong": NaN, "2 Marks": 0.0, "2 Percentage": 0.0, "3 Correct": NaN, "3 Wrong": NaN, "3 Marks": 0.0, "3 Percentage": 0, "Total Marks": 0.0, "Total Percentage": 0.0, "Rank": 16, "Total Question": NaN, "Penalty": NaN, "Total Question 1": NaN, "25": NaN, "Unnamed: 19": NaN, "Total Marks in MCQ": 0.0, "Rank in MCQ": 16, "Unnamed: 20": NaN}, "analysis": "Sakib Muntasir Moon (Rank 16, Total Marks: 0.0)\n\nGap from Top 5: -27.0 marks\n\nSection-wise Analysis:\n\nEnglish: 0.0% accuracy (-81.12% vs class), nan less questions attempted\nMaths: 0.0% accuracy (-58.85% vs class), nan less questions attempted\nAnalytical: 0.0% accuracy (-34.38% vs class), nan less questions attempted\n\nNeeds Improvement: Falling behind top performers.\nStrategy: Increase accuracy and attempt rate in weaker sections.\n", "class_metrics": {"1": {"class_accuracy": 81.11888111888112, "class_attempts": 19.066666666666666}, "2": {"class_accuracy": 58.85167464114832, "class_attempts": 13.933333333333334}, "3": {"class_accuracy": 34.375, "class_attempts": 2.1333333333333333}}, "improvement": {"marks": "N/A", "rank": "N/A"}}}, "marks_trend": [0.0], "rank_trend": [16], "test_names": ["BUP Mock 3"]}}}, "309281": {"name": "Samin Yasar Rafsan", "series": {"9172b9b2-ed8f-43b7-8882-6d66ea168b28": {"series_name": "BUP Mock", "sections": {"1": "English", "2": "Maths", "3": "Analytical"}, "essays_included": false, "tests": {"83f8cfcf-577c-413f-9ad0-2295fbb90547": {"test_name": "BUP Mock 3", "student_data": {"ID": 309281, "Name": "Samin Yasar Rafsan", "SeriesID": "9172b9b2-ed8f-43b7-8882-6d66ea168b28", "TestID": "83f8cfcf-577c-413f-9ad0-2295fbb90547", "TestName": "BUP Mock 3", "1 Correct": 15.0, "1 Wrong": 3.0, "1 Marks": 13.5, "1 Percentage": 54.0, "2 Correct": 6.0, "2 Wrong": 6.0, "2 Marks": 3.0, "2 Percentage": 7.5, "3 Correct": 0.0, "3 Wrong": 2.0, "3 Marks": -1.0, "3 Percentage": -10, "Total Marks": 15.5, "Total Percentage": 20.66666666666667, "Rank": 11, "Total Question": NaN, "Penalty": NaN, "Total Question 1": NaN, "25": NaN, "Unnamed: 19": NaN, "Total Marks in MCQ": 15.5, "Rank in MCQ": 11, "Unnamed: 20": NaN}, "analysis": "Samin Yasar Rafsan (Rank 11, Total Marks: 15.5)\n\nGap from Top 5: -11.5 marks\n\nSection-wise Analysis:\n\nEnglish: 83.33% accuracy (+2.21% vs class), -1.07 less questions attempted\nMaths: 50.0% accuracy (-8.85% vs class), -1.93 less questions attempted\nAnalytical: 0.0% accuracy (-34.38% vs class), -0.13 less questions attempted\n\nNeeds Improvement: Falling behind top performers.\nStrategy: Increase accuracy and attempt rate in weaker sections.\n", "class_metrics": {"1": {"class_accuracy": 81.11888111888112, "class_attempts": 19.066666666666666}, "2": {"class_accuracy": 58.85167464114832, "class_attempts": 13.933333333333334}, "3": {"class_accuracy": 34.375, "class_attempts": 2.1333333333333333}}, "improvement": {"marks": "N/A", "rank": "N/A"}}}, "marks_trend": [15.5], "rank_trend": [11], "test_names": ["BUP Mock 3"]}}}, "786264": {"name": "Shorfuddin Hassan", "series": {"9172b9b2-ed8f-43b7-8882-6d66ea168b28": {"series_name": "BUP Mock", "sections": {"1": "English", "2": "Maths", "3": "Analytical"}, "essays_included": false, "tests": {"83f8cfcf-577c-413f-9ad0-2295fbb90547": {"test_name": "BUP Mock 3", "student_data": {"ID": 786264, "Name": "Shorfuddin Hassan", "SeriesID": "9172b9b2-ed8f-43b7-8882-6d66ea168b28", "TestID": "83f8cfcf-577c-413f-9ad0-2295fbb90547", "TestName": "BUP Mock 3", "1 Correct": 20.0, "1 Wrong": 2.0, "1 Marks": 19.0, "1 Percentage": 76.0, "2 Correct": 7.0, "2 Wrong": 4.0, "2 Marks": 5.0, "2 Percentage": 12.5, "3 Correct": 1.0, "3 Wrong": 1.0, "3 Marks": 0.5, "3 Percentage": 5, "Total Marks": 24.5, "Total Percentage": 32.66666666666666, "Rank": 4, "Total Question": NaN, "Penalty": NaN, "Total Question 1": NaN, "25": NaN, "Unnamed: 19": NaN, "Total Marks in MCQ": 24.5, "Rank in MCQ": 4, "Unnamed: 20": NaN}, "analysis": "Shorfuddin Hassan (Rank 4, Total Marks: 24.5)\n\nGap from Top 5: -2.5 marks\n\nSection-wise Analysis:\n\nEnglish: 90.91% accuracy (+9.79% vs class), +2.93 more questions attempted\nMaths: 63.64% accuracy (+4.79% vs class), -2.93 less questions attempted\nAnalytical: 50.0% accuracy (+15.62% vs class), -0.13 less questions attempted\n\nNeeds Improvement: Falling behind top performers.\nStrategy: Increase accuracy and attempt rate in weaker sections.\n", "class_metrics": {"1": {"class_accuracy": 81.11888111888112, "class_attempts": 19.066666666666666}, "2": {"class_accuracy": 58.85167464114832, "class_attempts": 13.933333333333334}, "3": {"class_accuracy": 34.375, "class_attempts": 2.1333333333333333}}, "improvement": {"marks": "N/A", "rank": "N/A"}}}, "marks_trend": [24.5], "rank_trend": [4], "test_names": ["BUP Mock 3"]}}}, "111135": {"name": "Sidratul Muntaha Hossain", "series": {"9172b9b2-ed8f-43b7-8882-6d66ea168b28": {"series_name": "BUP Mock", "sections": {"1": "English", "2": "Maths", "3": "Analytical"}, "essays_included": false, "tests": {"83f8cfcf-577c-413f-9ad0-2295fbb90547": {"test_name": "BUP Mock 3", "student_data": {"ID": 111135, "Name": "Sidratul Muntaha Hossain", "SeriesID": "9172b9b2-ed8f-43b7-8882-6d66ea168b28", "TestID": "83f8cfcf-577c-413f-9ad0-2295fbb90547", "TestName": "BUP Mock 3", "1 Correct": 16.0, "1 Wrong": 3.0, "1 Marks": 14.5, "1 Percentage": 57.99999999999999, "2 Correct": 16.0, "2 Wrong": 4.0, "2 Marks": 14.0, "2 Percentage": 35.0, "3 Correct": 0.0, "3 Wrong": 1.0, "3 Marks": -0.5, "3 Percentage": -5, "Total Marks": 28.0, "Total Percentage": 37.33333333333334, "Rank": 2, "Total Question": NaN, "Penalty": NaN, "Total Question 1": NaN, "25": NaN, "Unnamed: 19": NaN, "Total Marks in MCQ": 28.0, "Rank in MCQ": 2, "Unnamed: 20": NaN}, "analysis": "Sidratul Muntaha Hossain (Rank 2, Total Marks: 28.0)\n\nGap from Top 5: +1.0 marks\n\nSection-wise Analysis:\n\nEnglish: 84.21% accuracy (+3.09% vs class), -0.07 less questions attempted\nMaths: 80.0% accuracy (+21.15% vs class), +6.07 more questions attempted\nAnalytical: 0.0% accuracy (-34.38% vs class), -1.13 less questions attempted\n\nGood performance, but room for improvement.\nFocus on weaker sections to close the gap.\n", "class_metrics": {"1": {"class_accuracy": 81.11888111888112, "class_attempts": 19.066666666666666}, "2": {"class_accuracy": 58.85167464114832, "class_attempts": 13.933333333333334}, "3": {"class_accuracy": 34.375, "class_attempts": 2.1333333333333333}}, "improvement": {"marks": "N/A", "rank": "N/A"}}}, "marks_trend": [28.0], "rank_trend": [2], "test_names": ["BUP Mock 3"]}}}, "159244": {"name": "Syed Iltimas Alam", "series": {"9172b9b2-ed8f-43b7-8882-6d66ea168b28": {"series_name": "BUP Mock", "sections": {"1": "English", "2": "Maths", "3": "Analytical"}, "essays_included": false, "tests": {"83f8cfcf-577c-413f-9ad0-2295fbb90547": {"test_name": "BUP Mock 3", "student_data": {"ID": 159244, "Name": "Syed Iltimas Alam", "SeriesID": "9172b9b2-ed8f-43b7-8882-6d66ea168b28", "TestID": "83f8cfcf-577c-413f-9ad0-2295fbb90547", "TestName": "BUP Mock 3", "1 Correct": 17.0, "1 Wrong": 2.0, "1 Marks": 16.0, "1 Percentage": 64.0, "2 Correct": 7.0, "2 Wrong": 3.0, "2 Marks": 5.5, "2 Percentage": 13.75, "3 Correct": 1.0, "3 Wrong": 1.0, "3 Marks": 0.5, "3 Percentage": 5, "Total Marks": 22.0, "Total Percentage": 29.33333333333333, "Rank": 5, "Total Question": NaN, "Penalty": NaN, "Total Question 1": NaN, "25": NaN, "Unnamed: 19": NaN, "Total Marks in MCQ": 22.0, "Rank in MCQ": 5, "Unnamed: 20": NaN}, "analysis": "Syed Iltimas Alam (Rank 5, Total Marks: 22.0)\n\nGap from Top 5: -5.0 marks\n\nSection-wise Analysis:\n\nEnglish: 89.47% accuracy (+8.35% vs class), -0.07 less questions attempted\nMaths: 70.0% accuracy (+11.15% vs class), -3.93 less questions attempted\nAnalytical: 50.0% accuracy (+15.62% vs class), -0.13 less questions attempted\n\nNeeds Improvement: Falling behind top performers.\nStrategy: Increase accuracy and attempt rate in weaker sections.\n", "class_metrics": {"1": {"class_accuracy": 81.11888111888112, "class_attempts": 19.066666666666666}, "2": {"class_accuracy": 58.85167464114832, "class_attempts": 13.933333333333334}, "3": {"class_accuracy": 34.375, "class_attempts": 2.1333333333333333}}, "improvement": {"marks": "N/A", "rank": "N/A"}}}, "marks_trend": [22.0], "rank_trend": [5], "test_names": ["BUP Mock 3"]}}}, "546220": {"name": "Syeda Huddessa Zainab", "series": {"9172b9b2-ed8f-43b7-8882-6d66ea168b28": {"series_name": "BUP Mock", "sections": {"1": "English", "2": "Maths", "3": "Analytical"}, "essays_included": false, "tests": {"83f8cfcf-577c-413f-9ad0-2295fbb90547": {"test_name": "BUP Mock 3", "student_data": {"ID": 546220, "Name": "Syeda Huddessa Zainab", "SeriesID": "9172b9b2-ed8f-43b7-8882-6d66ea168b28", "TestID": "83f8cfcf-577c-413f-9ad0-2295fbb90547", "TestName": "BUP Mock 3", "1 Correct": 12.0, "1 Wrong": 6.0, "1 Marks": 9.0, "1 Percentage": 36.0, "2 Correct": 2.0, "2 Wrong": 4.0, "2 Marks": 0.0, "2 Percentage": 0.0, "3 Correct": 0.0, "3 Wrong": 2.0, "3 Marks": -1.0, "3 Percentage": -10, "Total Marks": 8.0, "Total Percentage": 10.66666666666667, "Rank": 15, "Total Question": NaN, "Penalty": NaN, "Total Question 1": NaN, "25": NaN, "Unnamed: 19": NaN, "Total Marks in MCQ": 8.0, "Rank in MCQ": 15, "Unnamed: 20": NaN}, "analysis": "Syeda Huddessa Zainab (Rank 15, Total Marks: 8.0)\n\nGap from Top 5: -19.0 marks\n\nSection-wise Analysis:\n\nEnglish: 66.67% accuracy (-14.45% vs class), -1.07 less questions attempted\nMaths: 33.33% accuracy (-25.52% vs class), -7.93 less questions attempted\nAnalytical: 0.0% accuracy (-34.38% vs class), -0.13 less questions attempted\n\nNeeds Improvement: Falling behind top performers.\nStrategy: Increase accuracy and attempt rate in weaker sections.\n", "class_metrics": {"1": {"class_accuracy": 81.11888111888112, "class_attempts": 19.066666666666666}, "2": {"class_accuracy": 58.85167464114832, "class_attempts": 13.933333333333334}, "3": {"class_accuracy": 34.375, "class_attempts": 2.1333333333333333}}, "improvement": {"marks": "N/A", "rank": "N/A"}}}, "marks_trend": [8.0], "rank_trend": [15], "test_names": ["BUP Mock 3"]}}}, "532160": {"name": "Tahasin Tabassum Elahee", "series": {"9172b9b2-ed8f-43b7-8882-6d66ea168b28": {"series_name": "BUP Mock", "sections": {"1": "English", "2": "Maths", "3": "Analytical"}, "essays_included": false, "tests": {"83f8cfcf-577c-413f-9ad0-2295fbb90547": {"test_name": "BUP Mock 3", "student_data": {"ID": 532160, "Name": "Tahasin Tabassum Elahee", "SeriesID": "9172b9b2-ed8f-43b7-8882-6d66ea168b28", "TestID": "83f8cfcf-577c-413f-9ad0-2295fbb90547", "TestName": "BUP Mock 3", "1 Correct": 13.0, "1 Wrong": 4.0, "1 Marks": 11.0, "1 Percentage": 44.0, "2 Correct": 8.0, "2 Wrong": 5.0, "2 Marks": 5.5, "2 Percentage": 13.75, "3 Correct": 0.0, "3 Wrong": 0.0, "3 Marks": 0.0, "3 Percentage": 0, "Total Marks": 16.5, "Total Percentage": 22.0, "Rank": 9, "Total Question": NaN, "Penalty": NaN, "Total Question 1": NaN, "25": NaN, "Unnamed: 19": NaN, "Total Marks in MCQ": 16.5, "Rank in MCQ": 9, "Unnamed: 20": NaN}, "analysis": "Tahasin Tabassum Elahee (Rank 9, Total Marks: 16.5)\n\nGap from Top 5: -10.5 marks\n\nSection-wise Analysis:\n\nEnglish: 76.47% accuracy (-4.65% vs class), -2.07 less questions attempted\nMaths: 61.54% accuracy (+2.69% vs class), -0.93 less questions attempted\nAnalytical: 0.0% accuracy (-34.38% vs class), -2.13 less questions attempted\n\nNeeds Improvement: Falling behind top performers.\nStrategy: Increase accuracy and attempt rate in weaker sections.\n", "class_metrics": {"1": {"class_accuracy": 81.11888111888112, "class_attempts": 19.066666666666666}, "2": {"class_accuracy": 58.85167464114832, "class_attempts": 13.933333333333334}, "3": {"class_accuracy": 34.375, "class_attempts": 2.1333333333333333}}, "improvement": {"marks": "N/A", "rank": "N/A"}}}, "marks_trend": [16.5], "rank_trend": [9], "test_names": ["BUP Mock 3"]}}}, "255879": {"name": "Tauqir Anwar", "series": {"9172b9b2-ed8f-43b7-8882-6d66ea168b28": {"series_name": "BUP Mock", "sections": {"1": "English", "2": "Maths", "3": "Analytical"}, "essays_included": false, "tests": {"83f8cfcf-577c-413f-9ad0-2295fbb90547": {"test_name": "BUP Mock 3", "student_data": {"ID": 255879, "Name": "Tauqir Anwar", "SeriesID": "9172b9b2-ed8f-43b7-8882-6d66ea168b28", "TestID": "83f8cfcf-577c-413f-9ad0-2295fbb90547", "TestName": "BUP Mock 3", "1 Correct": 18.0, "1 Wrong": 3.0, "1 Marks": 16.5, "1 Percentage": 66.0, "2 Correct": 15.0, "2 Wrong": 5.0, "2 Marks": 12.5, "2 Percentage": 31.25, "3 Correct": 0.0, "3 Wrong": 2.0, "3 Marks": -1.0, "3 Percentage": -10, "Total Marks": 28.0, "Total Percentage": 37.33333333333334, "Rank": 3, "Total Question": NaN, "Penalty": NaN, "Total Question 1": NaN, "25": NaN, "Unnamed: 19": NaN, "Total Marks in MCQ": 28.0, "Rank in MCQ": 2, "Unnamed: 20": NaN}, "analysis": "Tauqir Anwar (Rank 3, Total Marks: 28.0)\n\nGap from Top 5: +1.0 marks\n\nSection-wise Analysis:\n\nEnglish: 85.71% accuracy (+4.59% vs class), +1.93 more questions attempted\nMaths: 75.0% accuracy (+16.15% vs class), +6.07 more questions attempted\nAnalytical: 0.0% accuracy (-34.38% vs class), -0.13 less questions attempted\n\nGood performance, but room for improvement.\nFocus on weaker sections to close the gap.\n", "class_metrics": {"1": {"class_accuracy": 81.11888111888112, "class_attempts": 19.066666666666666}, "2": {"class_accuracy": 58.85167464114832, "class_attempts": 13.933333333333334}, "3": {"class_accuracy": 34.375, "class_attempts": 2.1333333333333333}}, "improvement": {"marks": "N/A", "rank": "N/A"}}}, "marks_trend": [28.0], "rank_trend": [3], "test_names": ["BUP Mock 3"]}}}};
+
+function createStudentsList(data) {
+  var container = $('#students-container');
+  container.empty();
+
+  var keys = Object.keys(data);
+  if (keys.length === 0) {
+    // No data available
+    container.append('<div class="alert alert-info">No data available. Please ensure you have created a series, added a test, and input student data before exporting.</div>');
+    return;
+  }
+
+  var list = $('<div class="list-group"></div>');
+  for (var sid in data) {
+    var sName = data[sid].name;
+    var btn = $('<button class="list-group-item list-group-item-action"></button>')
+      .text(sName + " (ID: " + sid + ")")
+      .click(function(sidCopy){ 
+        return function(){
+          showStudentSeries(sidCopy);
+        };
+      }(sid));
+    list.append(btn);
+  }
+  container.append(list);
+}
+
+function showStudentSeries(student_id) {
+  var data = students_data[student_id];
+  $('#students-container').html('');
+
+  var backBtn = $('<button class="btn btn-secondary mb-3">← Back to Students</button>').click(function(){
+    createStudentsList(students_data);
+  });
+  $('#students-container').append(backBtn);
+
+  var title = $('<h2></h2>').text(data.name + " (ID: "+student_id+")");
+  $('#students-container').append(title);
+
+  var seriesList = $('<div class="list-group mb-3"></div>');
+  for (var sid in data.series) {
+    var sName = data.series[sid].series_name;
+    var seriesBtn = $('<button class="list-group-item list-group-item-action"></button>')
+      .text(sName)
+      .click((function(sidCopy){ 
+        return function(){
+          showSeriesDetails(student_id, sidCopy);
+        };
+      })(sid));
+    seriesList.append(seriesBtn);
+  }
+  $('#students-container').append($('<h4>Series</h4>')).append(seriesList);
+}
+
+function showSeriesDetails(student_id, series_id) {
+  var seriesData = students_data[student_id].series[series_id];
+  $('#students-container').html('');
+
+  var backBtn = $('<button class="btn btn-secondary mb-3">← Back</button>').click(function(){
+    showStudentSeries(student_id);
+  });
+  $('#students-container').append(backBtn);
+
+  var title = $('<h2></h2>').text(seriesData.series_name);
+  $('#students-container').append(title);
+
+  // Graphs: marks_trend and rank_trend
+  var marksDiv = $('<div id="marks-trend" style="height:300px;"></div>');
+  var rankDiv = $('<div id="rank-trend" style="height:300px;"></div>');
+
+  $('#students-container').append('<h4>Performance Trends</h4>');
+  $('#students-container').append(marksDiv);
+  $('#students-container').append(rankDiv);
+
+  // Plot the trends
+  var marksTrace = {
+    x: seriesData.test_names,
+    y: seriesData.marks_trend,
+    mode: 'lines+markers',
+    name: 'Marks'
+  };
+  var marksLayout = {title: "Marks Trend", xaxis: {title:"Test"}, yaxis:{title:"Marks"}};
+  Plotly.newPlot('marks-trend', [marksTrace], marksLayout);
+
+  var rankTrace = {
+    x: seriesData.test_names,
+    y: seriesData.rank_trend,
+    mode: 'lines+markers',
+    name: 'Rank',
+    line: {color:'red'}
+  };
+  var rankLayout = {title: "Rank Trend (Lower is Better)", xaxis:{title:"Test"}, yaxis:{autorange:"reversed", title:"Rank"}};
+  Plotly.newPlot('rank-trend', [rankTrace], rankLayout);
+
+  // Tests
+  $('#students-container').append('<h4 class="mt-4">Tests in this Series</h4>');
+  var testsList = $('<div class="list-group mb-3"></div>');
+  for (var tid in seriesData.tests) {
+    var tName = seriesData.tests[tid].test_name;
+    var testBtn = $('<button class="list-group-item list-group-item-action"></button>')
+      .text(tName)
+      .click((function(tidCopy){
+        return function(){
+          showTestDetails(student_id, series_id, tidCopy);
+        };
+      })(tid));
+    testsList.append(testBtn);
+  }
+  $('#students-container').append(testsList);
+}
+
+function showTestDetails(student_id, series_id, test_id) {
+  var testData = students_data[student_id].series[series_id].tests[test_id];
+  $('#students-container').html('');
+
+  var backBtn = $('<button class="btn btn-secondary mb-3">← Back</button>').click(function(){
+    showSeriesDetails(student_id, series_id);
+  });
+  $('#students-container').append(backBtn);
+
+  var title = $('<h2></h2>').text(testData.test_name);
+  $('#students-container').append(title);
+
+  // Show the test data in a table
+  var sData = testData.student_data;
+  if (sData.Absent) {
+    $('#students-container').append('<div class="alert alert-info">Student was absent for this test.</div>');
+    return;
+  }
+
+  // Display MCQ and Essay info
+  var table = $('<table class="table table-bordered table-striped"></table>');
+  var thead = $('<thead><tr><th>Field</th><th>Value</th></tr></thead>');
+  var tbody = $('<tbody></tbody>');
+  for (var key in sData) {
+    // Avoid SeriesID, TestID, TestName as they are internal fields
+    if (["SeriesID","TestID","TestName"].indexOf(key)>=0) continue;
+    var val = sData[key];
+    if (val !== val) { // NaN check
+      val = "--";
+    }
+    tbody.append('<tr><td>'+key+'</td><td>'+val+'</td></tr>');
+  }
+  table.append(thead).append(tbody);
+  $('#students-container').append('<h5>Test Data</h5>').append(table);
+
+  // Display Analysis if present
+  if (testData.analysis) {
+    var analysisDiv = $('<div class="card mt-4"><div class="card-header bg-dark text-white">Analysis</div><div class="card-body"><pre style="white-space:pre-wrap;">'+testData.analysis+'</pre></div></div>');
+    $('#students-container').append(analysisDiv);
+  }
+
+  // Display Improvement if present
+  if (testData.improvement) {
+    var improvement = testData.improvement;
+    var improvementMsg = "Improvement from previous test: Marks: " + improvement.marks + ", Rank: " + improvement.rank;
+    $('#students-container').append('<div class="alert alert-info mt-2">'+improvementMsg+'</div>');
+  }
+}
+
+// Initial load
+createStudentsList(students_data);
+</script>
+
+</body>
+</html>
