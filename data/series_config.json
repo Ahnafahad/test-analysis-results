@@ -1,14 +1,14 @@
 {
-    "9172b9b2-ed8f-43b7-8882-6d66ea168b28": {
-        "series_name": "BUP Mock",
+    "265919b8-5412-4b63-a998-413574caaad2": {
+        "series_name": "IBA Mock (with essays)",
         "sections": {
             "1": "English",
-            "2": "Maths",
-            "3": "Analytical"
+            "2": "Mathematics",
+            "3": "Analytical Ability"
         },
-        "essays_included": false,
+        "essays_included": true,
         "tests": {
-            "83f8cfcf-577c-413f-9ad0-2295fbb90547": "BUP Mock 3"
+            "f68eecd0-f353-436f-8e94-ae2383f9ab52": "Mock 1"
         }
     }
 }
