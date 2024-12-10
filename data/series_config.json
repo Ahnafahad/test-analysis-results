@@ -1,13 +1,14 @@
 {
-    "184ea6cd-f2db-4ac8-95cf-8dddbe582484": {
+    "9172b9b2-ed8f-43b7-8882-6d66ea168b28": {
         "series_name": "BUP Mock",
         "sections": {
             "1": "English",
             "2": "Maths",
             "3": "Analytical"
         },
+        "essays_included": false,
         "tests": {
-            "d70e4e22-502e-4673-aca7-889ae831915e": "BUP Mock 3"
+            "83f8cfcf-577c-413f-9ad0-2295fbb90547": "BUP Mock 3"
         }
     }
 }

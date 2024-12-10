@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>{{ title }}</title>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+.card { margin-bottom: 1rem; }
+.hidden { display: none; }
+</style>
+</head>
+<body class="bg-light">
+
+<div class="container mt-4 mb-5">
+<h1 class="mb-4">Consolidated Analysis</h1>
+<p>Select a student to begin exploring their performance.</p>
+
+<div id="students-container" class="mb-4"></div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<script>
+// students_data is a JSON string passed from the backend
+var students_data = {{ students_data|safe }};
+
+function createStudentsList(data) {
+  var container = $('#students-container');
+  container.empty();
+
+  var keys = Object.keys(data);
+  if (keys.length === 0) {
+    // No data available
+    container.append('<div class="alert alert-info">No data available. Please ensure you have created a series, added a test, and input student data before exporting.</div>');
+    return;
+  }
+
+  var list = $('<div class="list-group"></div>');
+  for (var sid in data) {
+    var sName = data[sid].name;
+    var btn = $('<button class="list-group-item list-group-item-action"></button>')
+      .text(sName + " (ID: " + sid + ")")
+      .click(function(sidCopy){ 
+        return function(){
+          showStudentSeries(sidCopy);
+        };
+      }(sid));
+    list.append(btn);
+  }
+  container.append(list);
+}
+
+function showStudentSeries(student_id) {
+  var data = students_data[student_id];
+  $('#students-container').html('');
+
+  var backBtn = $('<button class="btn btn-secondary mb-3">← Back to Students</button>').click(function(){
+    createStudentsList(students_data);
+  });
+  $('#students-container').append(backBtn);
+
+  var title = $('<h2></h2>').text(data.name + " (ID: "+student_id+")");
+  $('#students-container').append(title);
+
+  var seriesList = $('<div class="list-group mb-3"></div>');
+  for (var sid in data.series) {
+    var sName = data.series[sid].series_name;
+    var seriesBtn = $('<button class="list-group-item list-group-item-action"></button>')
+      .text(sName)
+      .click((function(sidCopy){ 
+        return function(){
+          showSeriesDetails(student_id, sidCopy);
+        };
+      })(sid));
+    seriesList.append(seriesBtn);
+  }
+  $('#students-container').append($('<h4>Series</h4>')).append(seriesList);
+}
+
+function showSeriesDetails(student_id, series_id) {
+  var seriesData = students_data[student_id].series[series_id];
+  $('#students-container').html('');
+
+  var backBtn = $('<button class="btn btn-secondary mb-3">← Back</button>').click(function(){
+    showStudentSeries(student_id);
+  });
+  $('#students-container').append(backBtn);
+
+  var title = $('<h2></h2>').text(seriesData.series_name);
+  $('#students-container').append(title);
+
+  // Graphs: marks_trend and rank_trend
+  var marksDiv = $('<div id="marks-trend" style="height:300px;"></div>');
+  var rankDiv = $('<div id="rank-trend" style="height:300px;"></div>');
+
+  $('#students-container').append('<h4>Performance Trends</h4>');
+  $('#students-container').append(marksDiv);
+  $('#students-container').append(rankDiv);
+
+  // Plot the trends
+  var marksTrace = {
+    x: seriesData.test_names,
+    y: seriesData.marks_trend,
+    mode: 'lines+markers',
+    name: 'Marks'
+  };
+  var marksLayout = {title: "Marks Trend", xaxis: {title:"Test"}, yaxis:{title:"Marks"}};
+  Plotly.newPlot('marks-trend', [marksTrace], marksLayout);
+
+  var rankTrace = {
+    x: seriesData.test_names,
+    y: seriesData.rank_trend,
+    mode: 'lines+markers',
+    name: 'Rank',
+    line: {color:'red'}
+  };
+  var rankLayout = {title: "Rank Trend (Lower is Better)", xaxis:{title:"Test"}, yaxis:{autorange:"reversed", title:"Rank"}};
+  Plotly.newPlot('rank-trend', [rankTrace], rankLayout);
+
+  // Tests
+  $('#students-container').append('<h4 class="mt-4">Tests in this Series</h4>');
+  var testsList = $('<div class="list-group mb-3"></div>');
+  for (var tid in seriesData.tests) {
+    var tName = seriesData.tests[tid].test_name;
+    var testBtn = $('<button class="list-group-item list-group-item-action"></button>')
+      .text(tName)
+      .click((function(tidCopy){
+        return function(){
+          showTestDetails(student_id, series_id, tidCopy);
+        };
+      })(tid));
+    testsList.append(testBtn);
+  }
+  $('#students-container').append(testsList);
+}
+
+function showTestDetails(student_id, series_id, test_id) {
+  var testData = students_data[student_id].series[series_id].tests[test_id];
+  $('#students-container').html('');
+
+  var backBtn = $('<button class="btn btn-secondary mb-3">← Back</button>').click(function(){
+    showSeriesDetails(student_id, series_id);
+  });
+  $('#students-container').append(backBtn);
+
+  var title = $('<h2></h2>').text(testData.test_name);
+  $('#students-container').append(title);
+
+  // Show the test data in a table
+  var sData = testData.student_data;
+  if (sData.Absent) {
+    $('#students-container').append('<div class="alert alert-info">Student was absent for this test.</div>');
+    return;
+  }
+
+  // Display MCQ and Essay info
+  var table = $('<table class="table table-bordered table-striped"></table>');
+  var thead = $('<thead><tr><th>Field</th><th>Value</th></tr></thead>');
+  var tbody = $('<tbody></tbody>');
+  for (var key in sData) {
+    // Avoid SeriesID, TestID, TestName as they are internal fields
+    if (["SeriesID","TestID","TestName"].indexOf(key)>=0) continue;
+    var val = sData[key];
+    if (val !== val) { // NaN check
+      val = "--";
+    }
+    tbody.append('<tr><td>'+key+'</td><td>'+val+'</td></tr>');
+  }
+  table.append(thead).append(tbody);
+  $('#students-container').append('<h5>Test Data</h5>').append(table);
+
+  // Display Analysis if present
+  if (testData.analysis) {
+    var analysisDiv = $('<div class="card mt-4"><div class="card-header bg-dark text-white">Analysis</div><div class="card-body"><pre style="white-space:pre-wrap;">'+testData.analysis+'</pre></div></div>');
+    $('#students-container').append(analysisDiv);
+  }
+
+  // Display Improvement if present
+  if (testData.improvement) {
+    var improvement = testData.improvement;
+    var improvementMsg = "Improvement from previous test: Marks: " + improvement.marks + ", Rank: " + improvement.rank;
+    $('#students-container').append('<div class="alert alert-info mt-2">'+improvementMsg+'</div>');
+  }
+}
+
+// Initial load
+createStudentsList(students_data);
+</script>
+
+</body>
+</html>
