@@ -706,135 +706,148 @@
             },
 
             questionAnalysis: (test, series) => {
-                LOG.info("[Component] [questionAnalysis]", new Date().toISOString(), "Rendering question analysis...", { test, series, state });
-                const startTime = performance.now();
-
-                const sections = series.sections;
-                const metrics = test.class_metrics;
-                const result = `
-                    <div class="analytics-section">
-                        <div class="section-header">
-                            <h4>Question Analysis</h4>
-                        </div>
-                        
-                        <!-- Question Grid Section -->
-                        ${Object.entries(sections).map(([sectionId, sectionName]) => `
-                            <div class="mb-4">
-                                <h5 class="mb-3">${sectionName}</h5>
-                                <div class="question-grid" id="questionGrid-${sectionId}">
-                                    ${Array.from({ length: 30 }, (_, i) => {
-                                        const questionKey = `Section${sectionId}-Q${i + 1}`;
-                                        const response = test.student_data[questionKey];
-                                        const resultClass = response ? utils.getResultClass(response) : 'skipped';
-                                        return `
-                                            <div class="question-cell"
-                                                 data-result="${resultClass}"
-                                                 data-question="${questionKey}"
-                                                 data-response="${response || 'Not Attempted'}"
-                                                 onmouseover="handlers.showQuestionTooltip(event)"
-                                                 onmouseout="handlers.hideQuestionTooltip()">
-                                                ${i + 1}
-                                            </div>
-                                        `;
-                                    }).join('')}
+    console.log("Rendering question analysis with test data:", test);
+    
+    const sections = series.sections;
+    const metrics = test.class_metrics;
+    
+    // Ensure we have the required data
+    if (!metrics || !metrics.top_questions_analysis) {
+        console.error("Missing metrics data for test:", test);
+        return `
+            <div class="analytics-section">
+                <div class="alert alert-warning">Missing metrics data for this test.</div>
+            </div>
+        `;
+    }
+    
+    const topQMetrics = metrics.top_questions_analysis;
+    
+    return `
+        <div class="analytics-section">
+            <div class="section-header">
+                <h4>Question Analysis</h4>
+            </div>
+            
+            <!-- Question Grid Section -->
+            ${Object.entries(sections).map(([sectionId, sectionName]) => `
+                <div class="mb-4">
+                    <h5 class="mb-3">${sectionName}</h5>
+                    <div class="question-grid" id="questionGrid-${sectionId}">
+                        ${Array.from({ length: 30 }, (_, i) => {
+                            const questionKey = `Section${sectionId}-Q${i + 1}`;
+                            const response = test.student_data[questionKey];
+                            const resultClass = response ? utils.getResultClass(response) : 'skipped';
+                            return `
+                                <div class="question-cell"
+                                     data-result="${resultClass}"
+                                     data-question="${questionKey}"
+                                     data-response="${response || 'Not Attempted'}"
+                                     onmouseover="handlers.showQuestionTooltip(event)"
+                                     onmouseout="handlers.hideQuestionTooltip()">
+                                    ${i + 1}
                                 </div>
-                            </div>
-                        `).join('')}
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `).join('')}
 
-                        <!-- Top Questions Analysis -->
-                        <div class="mt-5">
-                            <h5>Strategic Analysis</h5>
+            <!-- Top Questions Analysis -->
+            <div class="mt-5">
+                <h5>Strategic Analysis</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="metric-card">
+                            <div class="metric-card-header">
+                                Performance on Common Questions
+                            </div>
                             <div class="row">
-                                <div class="col-md-6">
-                                    <div class="metric-card">
-                                        <div class="metric-card-header">
-                                            Performance on Common Questions
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-6">
-                                                <small>Correct Questions Success</small>
-                                                <div class="h4">${utils.formatNumber(metrics.top_questions_analysis.commonly_correct_success_rate * 100)}%</div>
-                                            </div>
-                                            <div class="col-6">
-                                                <small>Wrong Questions Avoidance</small>
-                                                <div class="h4">${utils.formatNumber(metrics.top_questions_analysis.commonly_wrong_avoidance_rate * 100)}%</div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div class="col-6">
+                                    <small>Correct Questions Success</small>
+                                    <div class="h4">${utils.formatNumber(topQMetrics.commonly_correct_success_rate * 100)}%</div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="metric-card">
-                                        <div class="metric-card-header">
-                                            Strategic Metrics
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-6">
-                                                <small>Skip Strategy Alignment</small>
-                                                <div class="h4">${utils.formatNumber(metrics.top_questions_analysis.strategic_skip_alignment * 100)}%</div>
-                                            </div>
-                                            <div class="col-6">
-                                                <small>Overall Strategic Score</small>
-                                                <div class="h4">${utils.formatNumber(metrics.top_questions_analysis.strategic_score * 100)}%</div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div class="col-6">
+                                    <small>Wrong Questions Avoidance</small>
+                                    <div class="h4">${utils.formatNumber(topQMetrics.commonly_wrong_avoidance_rate * 100)}%</div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                `;
-
-                const endTime = performance.now();
-                LOG.info("[Performance]", new Date().toISOString(), `questionAnalysis took ${endTime - startTime}ms`, { state });
-                return result;
-            },
-
-            patternAnalysis: (test) => {
-                LOG.info("[Component] [patternAnalysis]", new Date().toISOString(), "Rendering pattern analysis...", { test, state });
-                const startTime = performance.now();
-
-                const patterns = test.class_metrics.response_patterns;
-                const result = `
-                    <div class="analytics-section">
-                        <div class="section-header">
-                            <h4>Pattern Recognition</h4>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="metric-card">
-                                    <div class="metric-card-header">Success Streaks</div>
-                                    <div class="metric-card-value">
-                                        ${patterns.longest_success_streak}
-                                        <small class="d-block text-muted">Consecutive Correct</small>
-                                    </div>
-                                </div>
+                    <div class="col-md-6">
+                        <div class="metric-card">
+                            <div class="metric-card-header">
+                                Strategic Metrics
                             </div>
-                            <div class="col-md-4">
-                                <div class="metric-card">
-                                    <div class="metric-card-header">Recovery Rate</div>
-                                    <div class="metric-card-value">
-                                        ${utils.formatNumber(patterns.recovery_rate * 100)}%
-                                        <small class="d-block text-muted">Wrong to Correct</small>
-                                    </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <small>Skip Strategy Alignment</small>
+                                    <div class="h4">${utils.formatNumber(topQMetrics.strategic_skip_alignment * 100)}%</div>
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="metric-card">
-                                    <div class="metric-card-header">Skip Strategy</div>
-                                    <div class="metric-card-value">
-                                        ${utils.formatNumber(patterns.skip_strategy_score * 100)}%
-                                        <small class="d-block text-muted">Effectiveness</small>
-                                    </div>
+                                <div class="col-6">
+                                    <small>Overall Strategic Score</small>
+                                    <div class="h4">${utils.formatNumber(topQMetrics.strategic_score * 100)}%</div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                `;
+                </div>
+            </div>
+        </div>
+    `;
+},
 
-                const endTime = performance.now();
-                LOG.info("[Performance]", new Date().toISOString(), `patternAnalysis took ${endTime - startTime}ms`, { state });
-                return result;
-            },
+patternAnalysis: (test) => {
+    console.log("Rendering pattern analysis with test data:", test);
+    
+    if (!test.class_metrics || !test.class_metrics.response_patterns) {
+        console.error("Missing response patterns data for test:", test);
+        return `
+            <div class="analytics-section">
+                <div class="alert alert-warning">Missing response pattern data for this test.</div>
+            </div>
+        `;
+    }
+    
+    const patterns = test.class_metrics.response_patterns;
+    
+    return `
+        <div class="analytics-section">
+            <div class="section-header">
+                <h4>Pattern Recognition</h4>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="metric-card">
+                        <div class="metric-card-header">Success Streaks</div>
+                        <div class="metric-card-value">
+                            ${patterns.longest_success_streak}
+                            <small class="d-block text-muted">Consecutive Correct</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="metric-card">
+                        <div class="metric-card-header">Recovery Rate</div>
+                        <div class="metric-card-value">
+                            ${utils.formatNumber(patterns.recovery_rate * 100)}%
+                            <small class="d-block text-muted">Wrong to Correct</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="metric-card">
+                        <div class="metric-card-header">Skip Strategy</div>
+                        <div class="metric-card-value">
+                            ${utils.formatNumber(patterns.skip_strategy_score * 100)}%
+                            <small class="d-block text-muted">Effectiveness</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+},
 
             essayAnalysis: (test) => {
                 LOG.info("[Component] [essayAnalysis]", new Date().toISOString(), "Checking essay data...", { test, state });

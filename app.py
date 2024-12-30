@@ -690,200 +690,107 @@ def section_analysis(row, sec_map, class_metrics):
 # ----------------------------------------------------------------------------------------------------
 # 13  Enhanced Analytics Functions
 # ----------------------------------------------------------------------------------------------------
-def enhanced_section_comparison(df_student, test_name, sec_map):
+def enhanced_section_comparison(df_student, test_name, sec_map, series_id):
     """
     Compares this test's performance to previous test performance for each section.
-    Weighted metrics:
-      - Accuracy improvement (40%)
-      - Attempt rate change (30%)
-      - Consistency in correct answers (30%)
-    Returns a dict with per-section comparison + overall improvement score.
-    Logs each step for debugging/tracing.
-    """
-    logging.info("Running enhanced_section_comparison for test %s...", test_name)
-    # Sort the student's tests by test name
-    df_student_sorted = df_student.sort_values("TestName")
-    current_test_row = df_student_sorted[df_student_sorted["TestName"] == test_name]
-    if len(current_test_row) == 0:
-        logging.warning("No current test row found for test %s. Returning empty comparison.", test_name)
-        return {}
-
-    # Identify the previous test if any
-    prev_rows = df_student_sorted[df_student_sorted["TestName"] < test_name]
-    if len(prev_rows) == 0:
-        logging.info("No previous test found for comparison. Returning empty results.")
-        return {}
-
-    prev_test_row = prev_rows.iloc[-1]
-
-    comparison_results = {}
-    overall_score = 0.0
-    for sec_id in ["1","2","3"]:
-        section_name = sec_map.get(sec_id, f"Section {sec_id}")
-
-        cur_correct = current_test_row[f"{sec_id} Correct"].values[0] if f"{sec_id} Correct" in current_test_row else 0
-        cur_wrong = current_test_row[f"{sec_id} Wrong"].values[0] if f"{sec_id} Wrong" in current_test_row else 0
-        prev_correct = prev_test_row.get(f"{sec_id} Correct", 0)
-        prev_wrong = prev_test_row.get(f"{sec_id} Wrong", 0)
-
-        cur_attempts = cur_correct + cur_wrong
-        prev_attempts = prev_correct + prev_wrong
-
-        cur_accuracy = (cur_correct / cur_attempts * 100) if cur_attempts else 0.0
-        prev_accuracy = (prev_correct / prev_attempts * 100) if prev_attempts else 0.0
-        acc_diff = cur_accuracy - prev_accuracy  # positive => improvement
-
-        attempt_diff = cur_attempts - prev_attempts  # positive => more attempts
-
-        # We'll assume "consistency in correct answers" means how many correct from prev test also correct in current
-        consistency = min(cur_correct, prev_correct) / max(1, prev_correct) * 100 if prev_correct else 0.0
-
-        # Weighted score
-        weighted_score = (acc_diff * 0.4) + (attempt_diff * 0.3) + (consistency * 0.3)
-        overall_score += weighted_score
-
-        comparison_results[sec_id] = {
-            "section_name": section_name,
-            "acc_diff": round(acc_diff, 2),
-            "attempt_diff": round(attempt_diff, 2),
-            "consistency_score": round(consistency, 2),
-            "weighted_score": round(weighted_score, 2)
-        }
-
-    comparison_results["overall_improvement_score"] = round(overall_score / 3, 2)  # average across sections
-    logging.info("enhanced_section_comparison completed for test %s.", test_name)
-    return comparison_results
-
-def top_questions_analysis(student_id, df_sheet2, df_sheet3):
-    """
-    Analyzes performance on common questions using Sheet2 and Sheet3 data.
-    """
-    if df_sheet2.empty or df_sheet3.empty:
-        return {
-            "commonly_correct_success_rate": 0,
-            "commonly_wrong_avoidance_rate": 0,
-            "strategic_skip_alignment": 0,
-            "strategic_score": 0
-        }
-
-    student_row = df_sheet3[df_sheet3["Roll"] == float(student_id)]
-    if student_row.empty:
-        return {
-            "commonly_correct_success_rate": 0,
-            "commonly_wrong_avoidance_rate": 0, 
-            "strategic_skip_alignment": 0,
-            "strategic_score": 0
-        }
-
-    # Calculate success rate on commonly correct questions
-    correct_count = 0
-    total_common = 0
-    for section in [1, 2, 3]:
-        section_questions = [col for col in student_row.columns if f"Section{section}" in col]
-        for q in section_questions:
-            if "(C)" in str(student_row[q].iloc[0]):
-                correct_count += 1
-            total_common += 1
     
-    commonly_correct = correct_count/total_common if total_common > 0 else 0
-
-    # Calculate wrong questions avoidance rate
-    wrong_count = 0
-    total_wrong = 0 
-    for section in [1, 2, 3]:
-        section_questions = [col for col in student_row.columns if f"Section{section}" in col]
-        for q in section_questions:
-            if "(W)" in str(student_row[q].iloc[0]):
-                wrong_count += 1
-            total_wrong += 1
-
-    wrong_avoidance = 1 - (wrong_count/total_wrong) if total_wrong > 0 else 0
-
-    # Calculate skip strategy based on NAN responses
-    skip_count = 0
-    total_questions = 0
-    for section in [1, 2, 3]:
-        section_questions = [col for col in student_row.columns if f"Section{section}" in col]
-        for q in section_questions:
-            val = str(student_row[q].iloc[0])
-            if "NAN" in val or pd.isna(val):
-                skip_count += 1
-            total_questions += 1
-
-    skip_alignment = skip_count/total_questions if total_questions > 0 else 0
-
-    # Calculate overall strategic score
-    strategic_score = (commonly_correct * 0.4 + 
-                      wrong_avoidance * 0.3 +
-                      skip_alignment * 0.3)
-
-    return {
-        "commonly_correct_success_rate": commonly_correct,
-        "commonly_wrong_avoidance_rate": wrong_avoidance,
-        "strategic_skip_alignment": skip_alignment,
-        "strategic_score": strategic_score
-    }
-
-def analyze_response_patterns(student_id, df_sheet3):
+    Parameters:
+        df_student (pandas.DataFrame): DataFrame containing student's test data
+        test_name (str): Name of the current test
+        sec_map (dict): Section mapping configuration
+        series_id (str): ID of the current series
+    
+    Returns:
+        dict: Dictionary containing comparison metrics and analysis
     """
-    Analyzes response patterns using Sheet3 data.
-    """
-    if df_sheet3.empty:
-        return {
-            "longest_success_streak": 0,
-            "recovery_rate": 0,
-            "skip_strategy_score": 0
-        }
-
-    student_row = df_sheet3[df_sheet3["Roll"] == float(student_id)]
-    if student_row.empty:
-        return {
-            "longest_success_streak": 0,
-            "recovery_rate": 0,
-            "skip_strategy_score": 0
-        }
-
-    # Calculate longest streak of correct answers
-    current_streak = 0
-    max_streak = 0
-    wrong_to_correct = 0
-    total_recoveries = 0
-    skips_after_wrong = 0
-    total_wrong = 0
-
-    for section in [1, 2, 3]:
-        section_questions = [col for col in student_row.columns if f"Section{section}" in col]
-        last_was_wrong = False
+    logging.info("Running enhanced_section_comparison for test %s in series %s...", 
+                 test_name, series_id)
+    
+    try:
+        # Sort the student's tests by test name
+        df_student_sorted = df_student.sort_values("TestName")
+        current_test_row = df_student_sorted[df_student_sorted["TestName"] == test_name]
         
-        for q in section_questions:
-            val = str(student_row[q].iloc[0])
+        if len(current_test_row) == 0:
+            logging.warning("No current test row found for test %s. Returning empty comparison.", 
+                          test_name)
+            return {}
+
+        # Identify the previous test if any
+        prev_rows = df_student_sorted[df_student_sorted["TestName"] < test_name]
+        if len(prev_rows) == 0:
+            logging.info("No previous test found for comparison. Returning empty results.")
+            return {}
+
+        prev_test_row = prev_rows.iloc[-1]
+
+        comparison_results = {}
+        overall_score = 0.0
+        
+        # Analyze each section
+        for sec_id in ["1", "2", "3"]:
+            section_name = sec_map.get(sec_id, f"Section {sec_id}")
+
+            # Extract metrics for current test
+            cur_correct = current_test_row[f"{sec_id} Correct"].values[0] \
+                if f"{sec_id} Correct" in current_test_row else 0
+            cur_wrong = current_test_row[f"{sec_id} Wrong"].values[0] \
+                if f"{sec_id} Wrong" in current_test_row else 0
             
-            if "(C)" in val:
-                current_streak += 1
-                if last_was_wrong:
-                    wrong_to_correct += 1
-                last_was_wrong = False
-            elif "(W)" in val:
-                max_streak = max(max_streak, current_streak)
-                current_streak = 0
-                total_wrong += 1
-                last_was_wrong = True
-            elif "NAN" in val or pd.isna(val):
-                if last_was_wrong:
-                    skips_after_wrong += 1
-                max_streak = max(max_streak, current_streak)
-                current_streak = 0
-                last_was_wrong = False
+            # Extract metrics for previous test
+            prev_correct = prev_test_row.get(f"{sec_id} Correct", 0)
+            prev_wrong = prev_test_row.get(f"{sec_id} Wrong", 0)
 
-    max_streak = max(max_streak, current_streak)
-    recovery_rate = wrong_to_correct/total_wrong if total_wrong > 0 else 0
-    skip_strategy = skips_after_wrong/total_wrong if total_wrong > 0 else 0
+            # Calculate metrics
+            cur_attempts = cur_correct + cur_wrong
+            prev_attempts = prev_correct + prev_wrong
 
-    return {
-        "longest_success_streak": max_streak,
-        "recovery_rate": recovery_rate,
-        "skip_strategy_score": skip_strategy
-    }
+            # Calculate accuracy
+            cur_accuracy = (cur_correct / cur_attempts * 100) if cur_attempts else 0.0
+            prev_accuracy = (prev_correct / prev_attempts * 100) if prev_attempts else 0.0
+            acc_diff = cur_accuracy - prev_accuracy  # positive => improvement
+
+            # Calculate attempt difference
+            attempt_diff = cur_attempts - prev_attempts  # positive => more attempts
+
+            # Calculate consistency score
+            # We'll assume "consistency in correct answers" means how many correct 
+            # from prev test were also correct in current
+            consistency = min(cur_correct, prev_correct) / max(1, prev_correct) * 100 \
+                if prev_correct else 0.0
+
+            # Calculate weighted score using the defined weights
+            # - Accuracy improvement (40%)
+            # - Attempt rate change (30%)
+            # - Consistency in correct answers (30%)
+            weighted_score = (acc_diff * 0.4) + (attempt_diff * 0.3) + (consistency * 0.3)
+            overall_score += weighted_score
+
+            # Store section results
+            comparison_results[sec_id] = {
+                "section_name": section_name,
+                "acc_diff": round(acc_diff, 2),
+                "attempt_diff": round(attempt_diff, 2),
+                "consistency_score": round(consistency, 2),
+                "weighted_score": round(weighted_score, 2)
+            }
+
+        # Calculate and store overall improvement score
+        comparison_results["overall_improvement_score"] = round(overall_score / 3, 2)
+        
+        logging.info("Enhanced section comparison completed successfully for test %s.", test_name)
+        return comparison_results
+
+    except Exception as e:
+        logging.error("Error in enhanced_section_comparison: %s", str(e))
+        logging.error("Stack trace:", exc_info=True)
+        return {
+            "error": str(e),
+            "overall_improvement_score": 0.0
+        }
+
+
+
 
 def analyze_peer_group_gaps(student_id, df, series_id, test_id):
     """
@@ -934,104 +841,256 @@ def analyze_peer_group_gaps(student_id, df, series_id, test_id):
     logging.info("Completed peer group gap analysis for student %s in test %s.", student_id, test_id)
     return result
 
-def analyze_consistency(df_student):
+def analyze_consistency(df_student, series_id, test_id):
     """
-    Section-wise consistency analysis using standard deviation of scores, variance, etc.
-    Returns a dict with consistency metrics, for integration with generate_series_trends().
+    Analyzes consistency within a specific test's sections.
     """
-    logging.info("Analyzing consistency across tests for a single student.")
-    if df_student.empty:
-        return {}
+    logging.info(f"Analyzing consistency for test {test_id} in series {series_id}")
+    
+    # Filter for specific test
+    df_test = df_student[(df_student["SeriesID"] == series_id) & 
+                        (df_student["TestID"] == test_id)]
+    
+    if df_test.empty:
+        return {
+            "section_1_std": 0,
+            "section_2_std": 0,
+            "section_3_std": 0,
+            "overall_consistency_score": 0
+        }
 
-    consistency_metrics = {
-        "section_1_std": 1.2,
-        "section_2_std": 1.7,
-        "section_3_std": 1.1,
-        "overall_consistency_score": 0.8
-    }
-    logging.info("Consistency analysis complete.")
+    # Calculate section-wise standard deviations
+    consistency_metrics = {}
+    for section in ["1", "2", "3"]:
+        correct_col = f"{section} Correct"
+        wrong_col = f"{section} Wrong"
+        
+        if correct_col in df_test.columns and wrong_col in df_test.columns:
+            total_attempts = df_test[correct_col] + df_test[wrong_col]
+            accuracy = (df_test[correct_col] / total_attempts).fillna(0)
+            consistency_metrics[f"section_{section}_std"] = float(accuracy.std())
+        else:
+            consistency_metrics[f"section_{section}_std"] = 0
+    
+    # Calculate overall consistency score
+    avg_std = sum(v for k, v in consistency_metrics.items() if k.endswith('_std')) / 3
+    consistency_metrics["overall_consistency_score"] = 1 - avg_std  # Higher score means more consistent
+    
     return consistency_metrics
 
-def analyze_question_strategy(df_sheet2, df_sheet3, student_id):
+def analyze_question_strategy(df_sheet2, df_sheet3, student_id, test_id, series_id):
     """
-    Compares student's attempt patterns with class norms based on commonly correct/wrong/skipped data.
-    Returns strategy metrics.
+    Analyzes question selection strategy for a specific test.
     """
-    logging.info("Analyzing question selection strategy for student %s...", student_id)
-    if df_sheet2.empty or df_sheet3.empty:
-        logging.warning("Sheet2 or Sheet3 empty, cannot analyze question strategy.")
-        return {}
+    logging.info(f"Analyzing question strategy for student {student_id} in test {test_id}")
+    
+    # Filter for specific test
+    df_test = df_sheet3[(df_sheet3["TestID"] == test_id) & 
+                        (df_sheet3["SeriesID"] == series_id) &
+                        (df_sheet3["Roll"] == float(student_id))]
+    
+    if df_test.empty:
+        return {
+            "question_selection_efficiency": 0,
+            "risk_management_score": 0,
+            "optimization_potential": 0
+        }
 
-    strategy_metrics = {
-        "question_selection_efficiency": 0.85,
-        "risk_management_score": 0.75,
-        "optimization_potential": 0.65
+    # Calculate real metrics instead of hardcoded values
+    success_rate = calculate_success_rate(df_sheet2, df_sheet3, student_id, test_id)
+    avoidance_rate = calculate_avoidance_rate(df_sheet2, df_sheet3, student_id, test_id)
+    skip_alignment = calculate_skip_alignment(df_sheet2, df_sheet3, student_id, test_id)
+    
+    # Calculate efficiency based on success vs attempt distribution
+    efficiency = success_rate * 0.6 + avoidance_rate * 0.4
+    
+    # Calculate risk management based on smart skips and wrong answer avoidance
+    risk_score = avoidance_rate * 0.7 + skip_alignment * 0.3
+    
+    # Calculate optimization potential based on current performance metrics
+    potential = 1 - ((efficiency + risk_score) / 2)
+    
+    return {
+        "question_selection_efficiency": round(efficiency, 2),
+        "risk_management_score": round(risk_score, 2),
+        "optimization_potential": round(potential, 2)
     }
-    logging.info("Question strategy analysis complete for student %s.", student_id)
-    return strategy_metrics
 
-def analyze_recovery(df_student, test_name):
+def analyze_recovery(df_student, test_id, series_id):
     """
-    Tracks how well a student recovers from mistakes across consecutive tests.
-    Returns a dict for integration into section_analysis() or generate_test_analysis().
+    Analyzes recovery patterns within a specific test.
     """
-    logging.info("Analyzing recovery rate for student in test %s...", test_name)
-    recovery_metrics = {
-        "recovery_rate": 0.9,
-        "improvement_pattern": "positive"
+    logging.info(f"Analyzing recovery patterns for test {test_id}")
+    
+    # Filter for specific test
+    df_test = df_student[(df_student["SeriesID"] == series_id) & 
+                        (df_student["TestID"] == test_id)]
+    
+    if df_test.empty:
+        return {
+            "recovery_rate": 0,
+            "improvement_pattern": "insufficient_data"
+        }
+
+    # Calculate section-wise recovery rates
+    section_recoveries = []
+    for section in ["1", "2", "3"]:
+        correct = df_test[f"{section} Correct"].iloc[0]
+        wrong = df_test[f"{section} Wrong"].iloc[0]
+        
+        if wrong > 0:
+            recovery = correct / (correct + wrong)
+            section_recoveries.append(recovery)
+    
+    # Calculate overall recovery rate
+    recovery_rate = sum(section_recoveries) / len(section_recoveries) if section_recoveries else 0
+    
+    # Determine improvement pattern
+    pattern = "stable"
+    if recovery_rate > 0.7:
+        pattern = "strong"
+    elif recovery_rate > 0.4:
+        pattern = "moderate"
+    else:
+        pattern = "needs_improvement"
+    
+    return {
+        "recovery_rate": round(recovery_rate, 2),
+        "improvement_pattern": pattern
     }
-    logging.info("Recovery analysis complete for test %s.", test_name)
-    return recovery_metrics
 
-def analyze_competitive_position(df_student):
+def analyze_competitive_position(df, student_id, test_id, series_id):
     """
-    Looks at rank trends to gauge how the student's competitive position changes over time.
-    Returns a dict to integrate with generate_series_trends().
+    Analyzes competitive position within a specific test.
     """
-    logging.info("Analyzing competitive position for student across all tests.")
-    position_metrics = {
-        "rank_stability_index": 0.8,
-        "section_wise_competitive_strength": "High in English, Medium in Math, Low in Analytical",
-        "relative_performance_indicators": "Improving steadily"
+    logging.info(f"Analyzing competitive position for student {student_id} in test {test_id}")
+    
+    # Filter for specific test
+    df_test = df[(df["SeriesID"] == series_id) & 
+                 (df["TestID"] == test_id)]
+    
+    if df_test.empty:
+        return {
+            "rank_stability_index": 0,
+            "section_wise_competitive_strength": "insufficient_data",
+            "relative_performance_indicators": "insufficient_data"
+        }
+
+    # Get student's rank and total participants
+    student_row = df_test[df_test["ID"] == float(student_id)]
+    if student_row.empty:
+        return {
+            "rank_stability_index": 0,
+            "section_wise_competitive_strength": "student_not_found",
+            "relative_performance_indicators": "student_not_found"
+        }
+
+    rank = student_row["Rank"].iloc[0]
+    total_students = len(df_test)
+    
+    # Calculate percentile position
+    percentile = (total_students - rank + 1) / total_students
+    
+    # Calculate section-wise strength
+    section_strengths = []
+    for section in ["1", "2", "3"]:
+        section_rank = df_test.sort_values(f"{section} Marks", ascending=False).index.get_loc(student_row.index[0]) + 1
+        section_percentile = (total_students - section_rank + 1) / total_students
+        section_strengths.append((section, section_percentile))
+    
+    # Determine relative performance
+    section_analysis = ", ".join([
+        f"{'High' if s[1] > 0.7 else 'Medium' if s[1] > 0.4 else 'Low'} in Section {s[0]}"
+        for s in section_strengths
+    ])
+    
+    # Calculate relative performance indicators
+    performance_level = "Top" if percentile > 0.9 else \
+                       "Strong" if percentile > 0.7 else \
+                       "Competitive" if percentile > 0.5 else \
+                       "Developing" if percentile > 0.3 else "Needs improvement"
+    
+    return {
+        "rank_stability_index": round(percentile, 2),
+        "section_wise_competitive_strength": section_analysis,
+        "relative_performance_indicators": performance_level
     }
-    logging.info("Competitive position analysis complete.")
-    return position_metrics
 
-def analyze_difficulty_handling(df_sheet2, df_sheet3, student_id):
+def analyze_difficulty_handling(df_sheet2, df_sheet3, student_id, test_id, series_id):
     """
-    Looks at how the student handles commonly difficult questions (top wrong).
-    Returns a dict summarizing difficulty management.
+    Analyzes how student handles difficult questions in a specific test.
     """
-    logging.info("Analyzing difficulty handling for student %s...", student_id)
-    if df_sheet2.empty or df_sheet3.empty:
-        logging.warning("Sheet2 or Sheet3 empty, cannot analyze difficulty handling.")
-        return {}
+    logging.info(f"Analyzing difficulty handling for student {student_id} in test {test_id}")
+    
+    # Filter for specific test
+    df_test = df_sheet3[(df_sheet3["TestID"] == test_id) & 
+                        (df_sheet3["SeriesID"] == series_id) &
+                        (df_sheet3["Roll"] == float(student_id))]
+    
+    if df_test.empty:
+        return {
+            "success_rate_in_commonly_wrong": 0,
+            "handling_strategic_skips": 0,
+            "overall_difficulty_score": 0
+        }
 
-    difficulty_metrics = {
-        "success_rate_in_commonly_wrong": 0.4,
-        "handling_strategic_skips": 0.6,
-        "overall_difficulty_score": 0.5
+    # Calculate success rate in commonly wrong questions
+    commonly_wrong_success = calculate_success_rate(df_sheet2, df_sheet3, student_id, test_id)
+    
+    # Calculate strategic skip handling
+    skip_handling = calculate_skip_alignment(df_sheet2, df_sheet3, student_id, test_id)
+    
+    # Calculate overall difficulty score
+    difficulty_score = (commonly_wrong_success * 0.6) + (skip_handling * 0.4)
+    
+    return {
+        "success_rate_in_commonly_wrong": round(commonly_wrong_success, 2),
+        "handling_strategic_skips": round(skip_handling, 2),
+        "overall_difficulty_score": round(difficulty_score, 2)
     }
-    logging.info("Difficulty handling analysis complete for student %s.", student_id)
-    return difficulty_metrics
 
-def compute_section_strength_index(df_student):
+def compute_section_strength_index(df_student, test_id, series_id):
     """
-    Calculates a section strength index by comparing correct/wrong over multiple tests.
-    Returns a dict of section strength scores for each test, or an aggregated score.
+    Calculates section strength index for a specific test.
     """
-    logging.info("Computing section strength index for student's test history.")
-    if df_student.empty:
-        return {}
+    logging.info(f"Computing section strength index for test {test_id}")
+    
+    # Filter for specific test
+    df_test = df_student[(df_student["SeriesID"] == series_id) & 
+                        (df_student["TestID"] == test_id)]
+    
+    if df_test.empty:
+        return {
+            "section_1_strength": 0,
+            "section_2_strength": 0,
+            "section_3_strength": 0,
+            "overall_section_balance": 0
+        }
 
-    strength_index = {
-        "section_1_strength": 0.8,
-        "section_2_strength": 0.6,
-        "section_3_strength": 0.7,
-        "overall_section_balance": 0.7
-    }
-    logging.info("Section strength index computation complete.")
-    return strength_index
+    # Calculate section-wise strength indices
+    strength_indices = {}
+    for section in ["1", "2", "3"]:
+        correct = df_test[f"{section} Correct"].iloc[0]
+        wrong = df_test[f"{section} Wrong"].iloc[0]
+        total = correct + wrong
+        
+        if total > 0:
+            accuracy = correct / total
+            attempts_ratio = total / max(total, 20)  # Normalize against expected number of questions
+            strength = (accuracy * 0.7) + (attempts_ratio * 0.3)
+            strength_indices[f"section_{section}_strength"] = round(strength, 2)
+        else:
+            strength_indices[f"section_{section}_strength"] = 0
+    
+    # Calculate overall section balance
+    strengths = [v for k, v in strength_indices.items() if k.endswith('_strength')]
+    avg_strength = sum(strengths) / len(strengths)
+    max_deviation = max(abs(s - avg_strength) for s in strengths)
+    balance_score = 1 - (max_deviation / max(avg_strength, 0.001))
+    
+    strength_indices["overall_section_balance"] = round(balance_score, 2)
+    
+    return strength_indices
 
 # ----------------------------------------------------------------------------------------------------
 # 14  generate_student_analysis_text() - Enhanced to include advanced comparisons if available
@@ -1042,12 +1101,31 @@ def generate_student_analysis_text(name, rank, total_marks, gap_from_top5, secti
                                    response_patterns=None,
                                    peer_group_gaps=None):
     """
-    Generates textual analysis. Enhanced with new analytics data (optionally).
+    Generates comprehensive textual analysis of student performance.
+    Enhanced with advanced analytics data integration and detailed formatting.
+    
+    Parameters:
+        name (str): Student's name
+        rank (int): Student's rank in the test
+        total_marks (float): Total marks obtained
+        gap_from_top5 (float): Gap from top 5 students' average
+        sections (list): List of section-wise performance data
+        section_comparison (dict, optional): Section-wise comparison metrics
+        top_q_analysis (dict, optional): Question-wise performance analysis
+        response_patterns (dict, optional): Student's response pattern analysis
+        peer_group_gaps (dict, optional): Comparison with peer group
+        
+    Returns:
+        str: Formatted analysis text with all available metrics
     """
-    logging.info("Generating student analysis text for %s (Rank %s).", name, rank)
+    logging.info("Generating comprehensive student analysis text for %s (Rank %s).", name, rank)
+    
+    # Basic Information Section
     text = f"{name} (Rank {rank}, Total Marks: {total_marks})\n\n"
     gap_str = f"{'+' if gap_from_top5>=0 else ''}{gap_from_top5}"
     text += f"Gap from Top 5: {gap_str} marks\n\nSection-wise Analysis:\n"
+    
+    # Section-wise Analysis with Enhanced Formatting
     for sec in sections:
         att_comp = f"{('+' if sec['diff_vs_class_attempts']>=0 else '')}{sec['diff_vs_class_attempts']}"
         if att_comp == '+0.0':
@@ -1056,121 +1134,281 @@ def generate_student_analysis_text(name, rank, total_marks, gap_from_top5, secti
             att_comp += (" more questions attempted"
                          if sec['diff_vs_class_attempts']>=0
                          else " less questions attempted")
+        
+        # Enhanced section formatting with more detailed metrics
         text += (f"\n{sec['name']}: {sec['accuracy']}% accuracy "
                  f"({('+' if sec['diff_vs_class_acc']>=0 else '')}{sec['diff_vs_class_acc']}% vs class), "
-                 f"{att_comp}")
+                 f"{att_comp}\n"
+                 f"Questions attempted: {sec['attempted']}, "
+                 f"Correct: {sec['correct']}, Wrong: {sec['wrong']}")
 
-    text += "\n\n"
+    # Performance Assessment and Strategy Section
+    text += "\n\nPerformance Assessment:"
     if rank == 1:
-        text += "Strengths: Top performer!\nStrategy: Keep up the good work.\n"
+        text += "\nStrengths: Top performer!\nStrategy: Keep up the good work."
+        text += "\nKey Focus Areas:\n- Maintain consistency across sections\n- Challenge yourself with higher difficulty questions"
     elif gap_from_top5 < 0:
-        text += ("Needs Improvement: Falling behind top performers.\n"
-                 "Strategy: Increase accuracy and attempt rate in weaker sections.\n")
+        text += "\nNeeds Improvement: Falling behind top performers."
+        text += "\nStrategy: Increase accuracy and attempt rate in weaker sections."
+        text += "\nRecommended Actions:\n- Focus on accuracy in attempted questions\n- Gradually increase attempt rate"
     else:
-        text += ("Good performance, but room for improvement.\n"
-                 "Focus on weaker sections to close the gap.\n")
+        text += "\nGood performance, but room for improvement."
+        text += "\nFocus on weaker sections to close the gap."
+        text += "\nSuggested Improvements:\n- Target specific weak areas\n- Optimize time management"
 
+    # Enhanced Section Comparison Integration
     if section_comparison:
-        text += "\n[Enhanced Section Comparison]\n"
+        text += "\n\n[Enhanced Section Comparison]"
+        text += "\nTrend Analysis across Sections:"
         for sec_id, data in section_comparison.items():
             if sec_id == "overall_improvement_score":
-                text += f"Overall Improvement Score: {data}\n"
+                text += f"\nOverall Improvement Score: {data}"
+                text += f"\nImprovement Category: {'Excellent' if data > 0.8 else 'Good' if data > 0.6 else 'Needs Focus'}"
             else:
-                text += (f"{data['section_name']}: "
-                         f"Acc Diff={data['acc_diff']}%, "
-                         f"Attempt Diff={data['attempt_diff']}, "
-                         f"Consistency={data['consistency_score']}%, "
-                         f"Weighted={data['weighted_score']}\n")
+                text += (f"\n{data['section_name']}:"
+                        f"\n- Accuracy Change: {data['acc_diff']}%"
+                        f"\n- Attempt Rate Change: {data['attempt_diff']}"
+                        f"\n- Consistency Score: {data['consistency_score']}%"
+                        f"\n- Overall Section Score: {data['weighted_score']}")
 
+    # Top Questions Analysis Integration
     if top_q_analysis:
-        text += "\n[Top Questions Analysis]\n"
+        text += "\n\n[Top Questions Analysis]"
+        text += "\nQuestion Selection Strategy:"
         tqa = top_q_analysis
-        text += (f"Commonly Correct Success Rate: {tqa['commonly_correct_success_rate']}\n"
-                 f"Commonly Wrong Avoidance Rate: {tqa['commonly_wrong_avoidance_rate']}\n"
-                 f"Strategic Skip Alignment: {tqa['strategic_skip_alignment']}\n"
-                 f"Strategic Score: {tqa['strategic_score']}\n")
+        text += (f"\n- Success Rate in Common Questions: {tqa['commonly_correct_success_rate']:.2%}"
+                 f"\n- Wrong Question Avoidance: {tqa['commonly_wrong_avoidance_rate']:.2%}"
+                 f"\n- Strategic Skip Alignment: {tqa['strategic_skip_alignment']:.2%}"
+                 f"\n- Overall Strategic Approach: {tqa['strategic_score']:.2%}")
 
+    # Response Pattern Analysis Integration
     if response_patterns:
-        text += "\n[Response Pattern Analysis]\n"
+        text += "\n\n[Response Pattern Analysis]"
+        text += "\nAnswer Pattern Indicators:"
         rpa = response_patterns
-        text += (f"Longest Success Streak: {rpa['longest_success_streak']}\n"
-                 f"Recovery Rate (W->C): {rpa['recovery_rate']}\n"
-                 f"Skip Strategy Score: {rpa['skip_strategy_score']}\n")
+        text += (f"\n- Maximum Correct Streak: {rpa['longest_success_streak']}"
+                 f"\n- Recovery After Wrong: {rpa['recovery_rate']:.2%}"
+                 f"\n- Strategic Skip Effectiveness: {rpa['skip_strategy_score']:.2%}")
 
+    # Peer Group Comparison Integration
     if peer_group_gaps:
-        text += "\n[Peer Group Gap Analysis]\n"
+        text += "\n\n[Peer Group Comparison]"
         pg = peer_group_gaps
-        text += (f"Peer Average Marks: {round(pg['peer_marks_avg'],2)} "
-                 f"(Your Marks: {round(pg['student_marks'],2)}) => Gap: {round(pg['mark_gap_vs_peer'],2)}\n")
+        text += (f"\nComparative Analysis:"
+                 f"\n- Class Average: {round(pg['peer_marks_avg'],2)}"
+                 f"\n- Your Score: {round(pg['student_marks'],2)}"
+                 f"\n- Performance Gap: {round(pg['mark_gap_vs_peer'],2)}"
+                 f"\nPosition: {get_performance_category(pg['mark_gap_vs_peer'])}")
 
-    logging.info("Student analysis text generation complete for %s.", name)
+    logging.info("Completed comprehensive analysis text generation for %s.", name)
     return text
 
-# ----------------------------------------------------------------------------------------------------
-# 15  generate_test_analysis() - Now calls the new analytics
-# ----------------------------------------------------------------------------------------------------
+def get_performance_category(gap):
+    """Helper function to categorize performance based on gap"""
+    if gap > 5:
+        return "Above Average"
+    elif gap < -5:
+        return "Below Average"
+    else:
+        return "At Par with Peers"
+
 def generate_test_analysis(df, series_id, test_id, row, sections):
-    logging.info("Starting generate_test_analysis for student %s, test %s...", row["Name"], test_id)
-
-    df_test = df[(df["SeriesID"]==series_id) & (df["TestID"]==test_id)]
-    df_test = df_test[~df_test["ID"].isna() & ~df_test["Name"].isna()]
+    """
+    Generates comprehensive test analysis for a student with enhanced metrics and validations.
     
-    if len(df_test)==0:
-        logging.warning("No data for this test. Returning minimal analysis.")
-        return "No data for this test.", {}, {}
+    Parameters:
+        df (pandas.DataFrame): Main data frame containing all test data
+        series_id (str): Identifier for the test series
+        test_id (str): Identifier for the specific test
+        row (pandas.Series): Student's data row
+        sections (dict): Section configuration data
+        
+    Returns:
+        tuple: (analysis_text, full_metrics, student_data)
+    """
+    logging.info("Starting comprehensive test analysis for student %s, test %s...", 
+                 row["Name"], test_id)
 
-    # Load Sheet3 data to get question responses
-    _, df_sheet3 = load_additional_sheets()
+    try:
+        # Validate and filter test data
+        df_test = df[(df["SeriesID"]==series_id) & (df["TestID"]==test_id)]
+        df_test = df_test[~df_test["ID"].isna() & ~df_test["Name"].isna()]
+        
+        if len(df_test)==0:
+            logging.warning("No data available for test %s. Returning minimal analysis.", test_id)
+            return "No data for this test.", {}, {}
+
+        # Load and validate additional data sheets
+        df_sheet2, df_sheet3 = load_additional_sheets()
+        logging.info("Loaded additional sheets - Sheet2: %s, Sheet3: %s", 
+                     "Present" if not df_sheet2.empty else "Empty",
+                     "Present" if not df_sheet3.empty else "Empty")
+        
+        # Extract and process question responses
+        question_responses = extract_question_responses(df_sheet3, row["ID"], test_id)
+        student_data = row.to_dict()
+        student_data.update(question_responses)
+
+        # Calculate performance metrics
+        df_test_sorted = df_test.sort_values("Total Marks", ascending=False)
+        top5 = df_test_sorted.head(5)
+        top5_avg = top5["Total Marks"].mean()
+
+        total_marks = row["Total Marks"]
+        rank = row["Rank"]
+        if pd.isna(total_marks):
+            total_marks = 0
+        gap_from_top5 = round(total_marks - top5_avg, 2)
+
+        # Compute comprehensive metrics
+        class_metrics = compute_class_metrics(df_test)
+        stu_sections = section_analysis(row, sections, class_metrics)
+        
+        # Filter student series data
+        df_student_series = df[(df["SeriesID"]==series_id) & (df["ID"]==row["ID"])]
+        
+        # Generate enhanced analytics using updated test-specific functions
+        section_comp = enhanced_section_comparison(
+            df_student_series, 
+            row["TestName"], 
+            sections,
+            series_id
+        )
+        
+        # Question analysis metrics
+        top_q = {
+            "commonly_correct_success_rate": calculate_success_rate(df_sheet2, df_sheet3, row["ID"], test_id),
+            "commonly_wrong_avoidance_rate": calculate_avoidance_rate(df_sheet2, df_sheet3, row["ID"], test_id),
+            "strategic_skip_alignment": calculate_skip_alignment(df_sheet2, df_sheet3, row["ID"], test_id),
+            "strategic_score": calculate_strategic_score(df_sheet2, df_sheet3, row["ID"], test_id)
+        }
+        
+        # Additional analysis metrics
+        resp_patterns = analyze_patterns_for_test(df_sheet3, row["ID"], test_id)
+        peer_gaps = analyze_peer_group_gaps(row["ID"], df, series_id, test_id)
+        recovery_info = analyze_recovery(df_student_series, test_id, series_id)
+
+        # Generate comprehensive analysis text
+        analysis_text = generate_student_analysis_text(
+            row["Name"], rank, total_marks, gap_from_top5, stu_sections,
+            section_comparison=section_comp,
+            top_q_analysis=top_q,
+            response_patterns=resp_patterns,
+            peer_group_gaps=peer_gaps
+        )
+        
+        # Compile full metrics
+        full_metrics = {
+            "class_metrics": class_metrics,
+            "section_comparison": section_comp,
+            "top_questions_analysis": top_q,
+            "response_patterns": resp_patterns,
+            "peer_group_gaps": peer_gaps,
+            "recovery_info": recovery_info,
+            "section_strength": compute_section_strength_index(df_student_series, test_id, series_id),
+            "difficulty_handling": analyze_difficulty_handling(df_sheet2, df_sheet3, row["ID"], test_id, series_id),
+            "competitive_position": analyze_competitive_position(df, row["ID"], test_id, series_id)
+        }
+
+        logging.info("Completed comprehensive test analysis for student %s, test %s.", 
+                    row["Name"], test_id)
+        return analysis_text, full_metrics, student_data
+
+    except Exception as e:
+        logging.error("Error in generate_test_analysis: %s", str(e))
+        logging.error("Stack trace:", exc_info=True)
+        return f"Error generating analysis: {str(e)}", {}, {}
+def calculate_success_rate(df_sheet2, df_sheet3, student_id, test_id):
+    # Calculate unique success rate for this specific test
+    df_test = df_sheet3[(df_sheet3["TestID"] == test_id) & (df_sheet3["Roll"] == float(student_id))]
+    if df_test.empty:
+        return 0.0
+        
+    correct_count = sum(1 for col in df_test.columns 
+                       if col.startswith('Section') and '(C)' in str(df_test[col].iloc[0]))
+    total_questions = sum(1 for col in df_test.columns if col.startswith('Section'))
     
-    # Extract question responses for this student
-    question_responses = extract_question_responses(df_sheet3, row["ID"], test_id)
+    return correct_count / total_questions if total_questions > 0 else 0.0
+
+def calculate_avoidance_rate(df_sheet2, df_sheet3, student_id, test_id):
+    # Calculate unique avoidance rate for this specific test
+    df_test = df_sheet3[(df_sheet3["TestID"] == test_id) & (df_sheet3["Roll"] == float(student_id))]
+    if df_test.empty:
+        return 0.0
+        
+    wrong_count = sum(1 for col in df_test.columns 
+                     if col.startswith('Section') and '(W)' in str(df_test[col].iloc[0]))
+    total_questions = sum(1 for col in df_test.columns if col.startswith('Section'))
     
-    # Add question responses to student_data
-    student_data = row.to_dict()
-    student_data.update(question_responses)
+    return 1 - (wrong_count / total_questions if total_questions > 0 else 0)
 
-    df_test_sorted = df_test.sort_values("Total Marks", ascending=False)
-    top5 = df_test_sorted.head(5)
-    top5_avg = top5["Total Marks"].mean()
-
-    total_marks = row["Total Marks"]
-    rank = row["Rank"]
-    if pd.isna(total_marks):
-        total_marks = 0
-    gap_from_top5 = round(total_marks - top5_avg,2)
-
-    class_metrics = compute_class_metrics(df_test)
-    stu_sections = section_analysis(row, sections, class_metrics)
-
-    df_sheet2, _ = load_additional_sheets()
-
-    df_student_series = df[(df["SeriesID"]==series_id) & (df["ID"]==row["ID"])]
-    section_comp = enhanced_section_comparison(df_student_series, row["TestName"], sections)
-    top_q = top_questions_analysis(row["ID"], df_sheet2, df_sheet3)
-    resp_patterns = analyze_response_patterns(row["ID"], df_sheet3)
-    peer_gaps = analyze_peer_group_gaps(row["ID"], df, series_id, test_id)
-    recovery_info = analyze_recovery(df_student_series, row["TestName"])
-
-    analysis_text = generate_student_analysis_text(
-        row["Name"], rank, total_marks, gap_from_top5, stu_sections,
-        section_comparison=section_comp,
-        top_q_analysis=top_q,
-        response_patterns=resp_patterns,
-        peer_group_gaps=peer_gaps
-    )
+def calculate_skip_alignment(df_sheet2, df_sheet3, student_id, test_id):
+    # Calculate unique skip alignment for this specific test
+    df_test = df_sheet3[(df_sheet3["TestID"] == test_id) & (df_sheet3["Roll"] == float(student_id))]
+    if df_test.empty:
+        return 0.0
+        
+    skipped_count = sum(1 for col in df_test.columns 
+                       if col.startswith('Section') and 
+                       (pd.isna(df_test[col].iloc[0]) or str(df_test[col].iloc[0]) == 'NAN'))
+    total_questions = sum(1 for col in df_test.columns if col.startswith('Section'))
     
-    full_metrics = {
-        "class_metrics": class_metrics,
-        "section_comparison": section_comp,
-        "top_questions_analysis": top_q,
-        "response_patterns": resp_patterns,
-        "peer_group_gaps": peer_gaps,
-        "recovery_info": recovery_info
+    return skipped_count / total_questions if total_questions > 0 else 0.0
+
+def calculate_strategic_score(df_sheet2, df_sheet3, student_id, test_id):
+    # Calculate unique strategic score for this specific test
+    success_rate = calculate_success_rate(df_sheet2, df_sheet3, student_id, test_id)
+    avoidance_rate = calculate_avoidance_rate(df_sheet2, df_sheet3, student_id, test_id)
+    skip_alignment = calculate_skip_alignment(df_sheet2, df_sheet3, student_id, test_id)
+    
+    return (success_rate * 0.4 + avoidance_rate * 0.3 + skip_alignment * 0.3)
+
+def analyze_patterns_for_test(df_sheet3, student_id, test_id):
+    # Calculate unique response patterns for this specific test
+    df_test = df_sheet3[(df_sheet3["TestID"] == test_id) & (df_sheet3["Roll"] == float(student_id))]
+    if df_test.empty:
+        return {
+            "longest_success_streak": 0,
+            "recovery_rate": 0,
+            "skip_strategy_score": 0
+        }
+
+    # Calculate streaks and patterns for this specific test
+    streak = 0
+    max_streak = 0
+    recoveries = 0
+    recovery_attempts = 0
+    skips_after_wrong = 0
+    total_wrong = 0
+
+    last_was_wrong = False
+    for col in [c for c in df_test.columns if c.startswith('Section')]:
+        val = str(df_test[col].iloc[0])
+        
+        if '(C)' in val:
+            streak += 1
+            if last_was_wrong:
+                recoveries += 1
+            last_was_wrong = False
+        elif '(W)' in val:
+            max_streak = max(max_streak, streak)
+            streak = 0
+            total_wrong += 1
+            last_was_wrong = True
+        elif 'NAN' in val or pd.isna(val):
+            if last_was_wrong:
+                skips_after_wrong += 1
+            max_streak = max(max_streak, streak)
+            streak = 0
+
+    recovery_rate = recoveries / total_wrong if total_wrong > 0 else 0
+    skip_strategy = skips_after_wrong / total_wrong if total_wrong > 0 else 0
+
+    return {
+        "longest_success_streak": max_streak,
+        "recovery_rate": recovery_rate,
+        "skip_strategy_score": skip_strategy
     }
-
-    logging.info("Completed generate_test_analysis for student %s, test %s.", row["Name"], test_id)
-    return analysis_text, full_metrics, student_data
-
 # ----------------------------------------------------------------------------------------------------
 # 16  generate_series_trends() - Extended for advanced analytics integration
 # ----------------------------------------------------------------------------------------------------
