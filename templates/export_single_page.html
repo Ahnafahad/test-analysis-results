@@ -1,195 +1,1366 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>{{ title }}</title>
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-<style>
-.card { margin-bottom: 1rem; }
-.hidden { display: none; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Test Analysis Dashboard</title>
+    
+    <!-- External Dependencies -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    
+    <style>
+        /* Core Layout Styles */
+        :root {
+            --sidebar-width: 300px;
+            --header-height: 60px;
+            --primary-color: #2196F3;
+            --success-color: #4CAF50;
+            --warning-color: #FFC107;
+            --danger-color: #F44336;
+            --gray-color: #9E9E9E;
+        }
+
+        body {
+            overflow-x: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            height: var(--header-height);
+            padding: 1rem;
+            border-bottom: 1px solid #dee2e6;
+            background: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .student-list {
+            padding: 1rem;
+        }
+
+        .student-card {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .student-card:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .student-card.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+        }
+
+        /* Analytics Section Styles */
+        .analytics-section {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+        }
+
+        .section-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #eee;
+        }
+
+        /* Performance Indicators */
+        .performance-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+            margin-right: 0.5rem;
+        }
+
+        .trend-up {
+            color: var(--success-color);
+        }
+
+        .trend-down {
+            color: var(--danger-color);
+        }
+
+        .trend-stable {
+            color: var(--warning-color);
+        }
+
+        /* Question Grid Styles */
+        .question-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 4px;
+            margin: 1rem 0;
+        }
+
+        .question-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .question-cell[data-result="correct"] {
+            background: rgba(76, 175, 80, 0.2);
+            color: #2E7D32;
+        }
+
+        .question-cell[data-result="wrong"] {
+            background: rgba(244, 67, 54, 0.2);
+            color: #C62828;
+        }
+
+        .question-cell[data-result="skipped"] {
+            background: rgba(158, 158, 158, 0.2);
+            color: #424242;
+        }
+
+        /* Chart Containers */
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin: 1rem 0;
+        }
+
+        /* Tooltip Styles */
+        .custom-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        /* Analysis Text Styles */
+        .analysis-text {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* Metric Card Styles */
+        .metric-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #dee2e6;
+        }
+
+        .metric-card-header {
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-card-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Section Navigation */
+        .section-nav {
+            position: sticky;
+            top: 0;
+            background: #fff;
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+            z-index: 100;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .section-nav-item {
+            padding: 0.5rem 1rem;
+            margin-right: 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .section-nav-item:hover {
+            background: #f8f9fa;
+        }
+
+        .section-nav-item.active {
+            background: var(--primary-color);
+            color: white;
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h5 class="mb-0">Navigation</h5>
+        </div>
+        <div id="studentList" class="student-list">
+            <!-- Student cards will be populated here -->
+        </div>
+        <div class="selection-controls p-3 border-top">
+            <div class="form-group mb-3">
+                <label for="seriesSelect">Select Series</label>
+                <select class="form-control" id="seriesSelect" onchange="handlers.selectSeries(this.value)">
+                    <option value="">Choose Series...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="testSelect">Select Test</label>
+                <select class="form-control" id="testSelect" onchange="handlers.selectTest(this.value)">
+                    <option value="">Choose Test...</option>
+                </select>
+            </div>
+        </div>
+    </div>
 
-<div class="container mt-4 mb-5">
-<h1 class="mb-4">Consolidated Analysis</h1>
-<p>Select a student to begin exploring their performance.</p>
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <div id="analysisContent">
+            <!-- Analytics content will be populated here -->
+        </div>
+    </div>
 
-<div id="students-container" class="mb-4"></div>
-
-</div>
-
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
-<script>
-// students_data is a JSON string passed from the backend
-var students_data = {{ students_data|safe }};
-
-function createStudentsList(data) {
-  var container = $('#students-container');
-  container.empty();
-
-  var keys = Object.keys(data);
-  if (keys.length === 0) {
-    // No data available
-    container.append('<div class="alert alert-info">No data available. Please ensure you have created a series, added a test, and input student data before exporting.</div>');
-    return;
-  }
-
-  var list = $('<div class="list-group"></div>');
-  for (var sid in data) {
-    var sName = data[sid].name;
-    var btn = $('<button class="list-group-item list-group-item-action"></button>')
-      .text(sName + " (ID: " + sid + ")")
-      .click(function(sidCopy){ 
-        return function(){
-          showStudentSeries(sidCopy);
+    <script>
+        /*=============================================
+         =  Core Configuration: Logging & Setup       =
+         =============================================*/
+        // A simple logger to unify all log outputs
+        // so they are visible where you run the file (e.g., in PowerShell via Node or a local server).
+        const LOG = {
+            info: (...messages) => {
+                console.log(...messages);
+            },
+            warn: (...messages) => {
+                console.warn(...messages);
+            },
+            error: (...messages) => {
+                console.error(...messages);
+            }
         };
-      }(sid));
-    list.append(btn);
-  }
-  container.append(list);
-}
 
-function showStudentSeries(student_id) {
-  var data = students_data[student_id];
-  $('#students-container').html('');
-
-  var backBtn = $('<button class="btn btn-secondary mb-3">← Back to Students</button>').click(function(){
-    createStudentsList(students_data);
-  });
-  $('#students-container').append(backBtn);
-
-  var title = $('<h2></h2>').text(data.name + " (ID: "+student_id+")");
-  $('#students-container').append(title);
-
-  var seriesList = $('<div class="list-group mb-3"></div>');
-  for (var sid in data.series) {
-    var sName = data.series[sid].series_name;
-    var seriesBtn = $('<button class="list-group-item list-group-item-action"></button>')
-      .text(sName)
-      .click((function(sidCopy){ 
-        return function(){
-          showSeriesDetails(student_id, sidCopy);
+        /*=============================================
+         =            State Management                =
+         =============================================*/
+        const state = {
+            studentsData: null,
+            selectedStudentId: null,
+            selectedSeriesId: null,
+            selectedTestId: null,
+            charts: {}
         };
-      })(sid));
-    seriesList.append(seriesBtn);
-  }
-  $('#students-container').append($('<h4>Series</h4>')).append(seriesList);
-}
 
-function showSeriesDetails(student_id, series_id) {
-  var seriesData = students_data[student_id].series[series_id];
-  $('#students-container').html('');
+        function validateState() {
+            LOG.info("[StateValidation]", new Date().toISOString(), "Validating application state...", { state });
 
-  var backBtn = $('<button class="btn btn-secondary mb-3">← Back</button>').click(function(){
-    showStudentSeries(student_id);
-  });
-  $('#students-container').append(backBtn);
+            const requiredKeys = ['studentsData', 'selectedStudentId', 'selectedSeriesId', 'selectedTestId'];
+            const missingKeys = requiredKeys.filter(key => !state.hasOwnProperty(key));
 
-  var title = $('<h2></h2>').text(seriesData.series_name);
-  $('#students-container').append(title);
+            if (missingKeys.length > 0) {
+                LOG.error("[StateValidation]", new Date().toISOString(), "Missing required state keys:", missingKeys);
+                return false;
+            }
 
-  // Graphs: marks_trend and rank_trend
-  var marksDiv = $('<div id="marks-trend" style="height:300px;"></div>');
-  var rankDiv = $('<div id="rank-trend" style="height:300px;"></div>');
+            if (!state.studentsData || typeof state.studentsData !== 'object') {
+                LOG.error("[StateValidation]", new Date().toISOString(), "Invalid studentsData in state");
+                return false;
+            }
 
-  $('#students-container').append('<h4>Performance Trends</h4>');
-  $('#students-container').append(marksDiv);
-  $('#students-container').append(rankDiv);
+            return true;
+        }
 
-  // Plot the trends
-  var marksTrace = {
-    x: seriesData.test_names,
-    y: seriesData.marks_trend,
-    mode: 'lines+markers',
-    name: 'Marks'
-  };
-  var marksLayout = {title: "Marks Trend", xaxis: {title:"Test"}, yaxis:{title:"Marks"}};
-  Plotly.newPlot('marks-trend', [marksTrace], marksLayout);
+        /*=============================================
+         =            Event Handlers                  =
+         =============================================*/
+        const handlers = {
+            selectStudent: (studentId) => {
+                LOG.info("[Handler] [selectStudent]", new Date().toISOString(), "Selecting student:", { studentId, state });
+                state.selectedStudentId = studentId;
+                const student = state.studentsData[studentId];
 
-  var rankTrace = {
-    x: seriesData.test_names,
-    y: seriesData.rank_trend,
-    mode: 'lines+markers',
-    name: 'Rank',
-    line: {color:'red'}
-  };
-  var rankLayout = {title: "Rank Trend (Lower is Better)", xaxis:{title:"Test"}, yaxis:{autorange:"reversed", title:"Rank"}};
-  Plotly.newPlot('rank-trend', [rankTrace], rankLayout);
+                if (!student) {
+                    LOG.error("[Handler] [selectStudent]", new Date().toISOString(), "No student data found:", { studentId, state });
+                    return;
+                }
 
-  // Tests
-  $('#students-container').append('<h4 class="mt-4">Tests in this Series</h4>');
-  var testsList = $('<div class="list-group mb-3"></div>');
-  for (var tid in seriesData.tests) {
-    var tName = seriesData.tests[tid].test_name;
-    var testBtn = $('<button class="list-group-item list-group-item-action"></button>')
-      .text(tName)
-      .click((function(tidCopy){
-        return function(){
-          showTestDetails(student_id, series_id, tidCopy);
+                // Update series dropdown
+                const seriesSelect = document.getElementById('seriesSelect');
+                seriesSelect.innerHTML = '<option value="">Choose Series...</option>' + 
+                    Object.entries(student.series)
+                        .map(([id, data]) => `<option value="${id}">${data.series_name}</option>`)
+                        .join('');
+                
+                // Select first series if none selected
+                if (!state.selectedSeriesId || !student.series[state.selectedSeriesId]) {
+                    const firstSeriesId = Object.keys(student.series)[0];
+                    LOG.info("[Handler] [selectStudent]", new Date().toISOString(), "Auto-selecting first series:", { firstSeriesId, state });
+                    handlers.selectSeries(firstSeriesId);
+                }
+                
+                renderStudentList();
+                renderAnalysis();
+            },
+
+            selectSeries: (seriesId) => {
+                LOG.info("[Handler] [selectSeries]", new Date().toISOString(), "Selecting series:", { seriesId, state });
+
+                if (!seriesId) {
+                    LOG.warn("[Handler] [selectSeries]", new Date().toISOString(), "seriesId is empty!", { state });
+                    return;
+                }
+                
+                state.selectedSeriesId = seriesId;
+                const student = state.studentsData[state.selectedStudentId];
+                if (!student || !student.series[seriesId]) {
+                    LOG.error("[Handler] [selectSeries]", new Date().toISOString(), "Invalid seriesId or no data found:", { seriesId, state });
+                    return;
+                }
+                const series = student.series[seriesId];
+                
+                // Update test dropdown
+                const testSelect = document.getElementById('testSelect');
+                testSelect.innerHTML = '<option value="">Choose Test...</option>' + 
+                    Object.entries(series.tests)
+                        .map(([id, data]) => `<option value="${id}">${data.test_name}</option>`)
+                        .join('');
+                
+                // Select first test if none selected
+                if (!state.selectedTestId || !series.tests[state.selectedTestId]) {
+                    const firstTestId = Object.keys(series.tests)[0];
+                    LOG.info("[Handler] [selectSeries]", new Date().toISOString(), "Auto-selecting first test:", { firstTestId, state });
+                    handlers.selectTest(firstTestId);
+                }
+            },
+
+            selectTest: (testId) => {
+                LOG.info("[Handler] [selectTest]", new Date().toISOString(), "Selecting test:", { testId, state });
+
+                if (!testId) {
+                    LOG.warn("[Handler] [selectTest]", new Date().toISOString(), "testId is empty!", { state });
+                    return;
+                }
+                
+                state.selectedTestId = testId;
+                renderAnalysis();
+
+                const student = state.studentsData[state.selectedStudentId];
+                if (!student) {
+                    LOG.error("[Handler] [selectTest]", new Date().toISOString(), "No student found:", { studentId: state.selectedStudentId, state });
+                    return;
+                }
+
+                const series = student.series[state.selectedSeriesId];
+                if (!series) {
+                    LOG.error("[Handler] [selectTest]", new Date().toISOString(), "No series found:", { seriesId: state.selectedSeriesId, state });
+                    return;
+                }
+
+                const test = series.tests[testId];
+                if (!test) {
+                    LOG.error("[Handler] [selectTest]", new Date().toISOString(), "No test found:", { testId, state });
+                    return;
+                }
+                
+                LOG.info("[Handler] [selectTest]", new Date().toISOString(), "Question Response Data:", { studentData: test.student_data });
+                LOG.info("[Handler] [selectTest]", new Date().toISOString(), "Strategic Analysis Data:", { metrics: test.class_metrics });
+            },
+
+            showMetricInfo: (metric) => {
+                LOG.info("[Handler] [showMetricInfo]", new Date().toISOString(), "Metric clicked:", { metric, state });
+                const explanations = {
+                    commonly_correct_success_rate: `
+                        <h5>Common Correct Questions Success Rate</h5>
+                        <p>This metric shows how well you performed on questions that most students answer correctly. 
+                        A high percentage (>80%) indicates you're consistently solving questions that form the basic 
+                        expectation level. A lower percentage suggests a need to focus on fundamental concepts.</p>
+                        <ul>
+                            <li> >80%: Excellent grasp of fundamental concepts</li>
+                            <li>60-80%: Good performance, room for improvement</li>
+                            <li> <60%: Needs attention to basic concepts</li>
+                        </ul>
+                    `,
+                    commonly_wrong_avoidance_rate: `
+                        <h5>Common Wrong Questions Avoidance Rate</h5>
+                        <p>This measures your ability to avoid questions that frequently trip up other students. 
+                        A high rate means you're successfully identifying and handling challenging questions.</p>
+                        <ul>
+                            <li> >70%: Excellent problem-solving strategy</li>
+                            <li>50-70%: Good awareness of difficult questions</li>
+                            <li> <50%: Need to improve question analysis skills</li>
+                        </ul>
+                    `,
+                    strategic_skip_alignment: `
+                        <h5>Strategic Skip Alignment</h5>
+                        <p>This shows how well your decision to skip questions aligns with optimal test-taking strategy. 
+                        It considers time management and question difficulty.</p>
+                        <ul>
+                            <li> >75%: Excellent strategic decisions</li>
+                            <li>50-75%: Good strategy, can be optimized</li>
+                            <li> <50%: Need to improve question selection</li>
+                        </ul>
+                    `,
+                    recovery_rate: `
+                        <h5>Recovery Rate</h5>
+                        <p>This measures your ability to bounce back after incorrect answers. A high rate indicates 
+                        strong resilience and consistent performance despite setbacks.</p>
+                        <ul>
+                            <li> >80%: Excellent recovery ability</li>
+                            <li>60-80%: Good resilience</li>
+                            <li> <60%: Need to work on consistency</li>
+                        </ul>
+                    `,
+                    skip_strategy_score: `
+                        <h5>Skip Strategy Score</h5>
+                        <p>This evaluates the effectiveness of your decisions about which questions to attempt or skip. 
+                        It considers time management and success rate.</p>
+                        <ul>
+                            <li> >70%: Excellent strategic decisions</li>
+                            <li>50-70%: Good strategy</li>
+                            <li> <50%: Need to improve question selection</li>
+                        </ul>
+                    `
+                };
+
+                const explanationHtml = explanations[metric] || '<p>No detailed explanation available for this metric.</p>';
+                
+                // Create or update modal
+                let modal = document.getElementById('metricInfoModal');
+                if (!modal) {
+                    modal = document.createElement('div');
+                    modal.className = 'modal fade';
+                    modal.id = 'metricInfoModal';
+                    modal.innerHTML = `
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Metric Explanation</h5>
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                </div>
+                                <div class="modal-body"></div>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+                    LOG.info("[Handler] [showMetricInfo]", new Date().toISOString(), "Created metricInfoModal for the first time.", { state });
+                }
+                
+                modal.querySelector('.modal-body').innerHTML = explanationHtml;
+                $(modal).modal('show');
+            },
+
+            showQuestionTooltip: (event) => {
+                const cell = event.target;
+                const tooltip = document.querySelector('.custom-tooltip');
+                if (!tooltip) {
+                    LOG.error("[Handler] [showQuestionTooltip]", new Date().toISOString(), "No tooltip element found!", { state });
+                    return;
+                }
+                const response = cell.dataset.response;
+                const question = cell.dataset.question;
+                
+                tooltip.textContent = `${question}: ${response}`;
+                tooltip.style.opacity = '1';
+                tooltip.style.left = `${event.pageX + 10}px`;
+                tooltip.style.top = `${event.pageY + 10}px`;
+            },
+
+            hideQuestionTooltip: () => {
+                const tooltip = document.querySelector('.custom-tooltip');
+                if (!tooltip) {
+                    LOG.error("[Handler] [hideQuestionTooltip]", new Date().toISOString(), "No tooltip element found!", { state });
+                    return;
+                }
+                tooltip.style.opacity = '0';
+            }
         };
-      })(tid));
-    testsList.append(testBtn);
-  }
-  $('#students-container').append(testsList);
-}
 
-function showTestDetails(student_id, series_id, test_id) {
-  var testData = students_data[student_id].series[series_id].tests[test_id];
-  $('#students-container').html('');
+        /*=============================================
+         =         Component Rendering               =
+         =============================================*/
+        const utils = {
+            formatNumber: (num, decimals = 2) => {
+                if (num === null || num === undefined || isNaN(num)) {
+                    LOG.warn("[Utils] [formatNumber]", new Date().toISOString(), "Invalid number:", { value: num, state });
+                    return '--';
+                }
+                return Number(num).toFixed(decimals);
+            },
 
-  var backBtn = $('<button class="btn btn-secondary mb-3">← Back</button>').click(function(){
-    showSeriesDetails(student_id, series_id);
-  });
-  $('#students-container').append(backBtn);
+            getLatestTest: (series) => {
+                if (!series || !series.tests) {
+                    LOG.error("[Utils] [getLatestTest]", new Date().toISOString(), "Series object is missing or invalid:", { series, state });
+                    return null;
+                }
+                const tests = series.tests;
+                const testIds = Object.keys(tests);
+                if (testIds.length === 0) {
+                    LOG.warn("[Utils] [getLatestTest]", new Date().toISOString(), "No tests found in series:", { series, state });
+                    return null;
+                }
+                return tests[testIds[testIds.length - 1]];
+            },
 
-  var title = $('<h2></h2>').text(testData.test_name);
-  $('#students-container').append(title);
+            getTrendIndicator: (value) => {
+                if (value === '↑') return '<span class="trend-up">↑</span>';
+                if (value === '↓') return '<span class="trend-down">↓</span>';
+                return '<span class="trend-stable">→</span>';
+            },
 
-  // Show the test data in a table
-  var sData = testData.student_data;
-  if (sData.Absent) {
-    $('#students-container').append('<div class="alert alert-info">Student was absent for this test.</div>');
-    return;
-  }
+            getResultClass: (result) => {
+                if (typeof result !== 'string') {
+                    LOG.warn("[Utils] [getResultClass]", new Date().toISOString(), "Result is not a string:", { result, state });
+                    return 'skipped';
+                }
+                if (result.includes('(C)')) return 'correct';
+                if (result.includes('(W)')) return 'wrong';
+                return 'skipped';
+            },
 
-  // Display MCQ and Essay info
-  var table = $('<table class="table table-bordered table-striped"></table>');
-  var thead = $('<thead><tr><th>Field</th><th>Value</th></tr></thead>');
-  var tbody = $('<tbody></tbody>');
-  for (var key in sData) {
-    // Avoid SeriesID, TestID, TestName as they are internal fields
-    if (["SeriesID","TestID","TestName"].indexOf(key)>=0) continue;
-    var val = sData[key];
-    if (val !== val) { // NaN check
-      val = "--";
-    }
-    tbody.append('<tr><td>'+key+'</td><td>'+val+'</td></tr>');
-  }
-  table.append(thead).append(tbody);
-  $('#students-container').append('<h5>Test Data</h5>').append(table);
+            createTooltip: () => {
+                const tooltip = document.createElement('div');
+                tooltip.className = 'custom-tooltip';
+                document.body.appendChild(tooltip);
+                LOG.info("[Utils] [createTooltip]", new Date().toISOString(), "Tooltip element created:", { tooltip, state });
+                return tooltip;
+            }
+        };
 
-  // Display Analysis if present
-  if (testData.analysis) {
-    var analysisDiv = $('<div class="card mt-4"><div class="card-header bg-dark text-white">Analysis</div><div class="card-body"><pre style="white-space:pre-wrap;">'+testData.analysis+'</pre></div></div>');
-    $('#students-container').append(analysisDiv);
-  }
+        const components = {
+            studentCard: (studentId, studentData) => {
+                if (!studentData || !studentData.series) {
+                    LOG.error("[Component] [studentCard]", new Date().toISOString(), "Invalid studentData:", { studentId, studentData, state });
+                    return `<div class="student-card" style="border-color: red;">Invalid Student Data: ${studentId}</div>`;
+                }
 
-  // Display Improvement if present
-  if (testData.improvement) {
-    var improvement = testData.improvement;
-    var improvementMsg = "Improvement from previous test: Marks: " + improvement.marks + ", Rank: " + improvement.rank;
-    $('#students-container').append('<div class="alert alert-info mt-2">'+improvementMsg+'</div>');
-  }
-}
+                const latestSeries = Object.values(studentData.series)[0];
+                const latestTest = utils.getLatestTest(latestSeries);
+                const isActive = state.selectedStudentId === studentId;
+                
+                return `
+                    <div class="student-card ${isActive ? 'active' : ''}" 
+                         onclick="handlers.selectStudent('${studentId}')">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${studentData.name}</strong>
+                                <div class="small text-muted">ID: ${studentId}</div>
+                            </div>
+                            ${
+                                latestTest
+                                    ? `
+                                        <div class="text-right">
+                                            <div>Rank: ${latestTest.student_data.Rank}</div>
+                                            <div>Marks: ${latestTest.student_data['Total Marks']}</div>
+                                        </div>
+                                    `
+                                    : ''
+                            }
+                        </div>
+                    </div>
+                `;
+            },
 
-// Initial load
-createStudentsList(students_data);
-</script>
+            performanceOverview: (student, series, test) => {
+                LOG.info("[Component] [performanceOverview]", new Date().toISOString(), "Rendering data for:", { student, series, test, state });
+                const startTime = performance.now();
 
+                const sections = series.sections;
+                const studentData = test.student_data;
+                const improvement = test.improvement;
+
+                const result = `
+                    <div class="analytics-section">
+                        <div class="section-header">
+                            <h4>Performance Overview</h4>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="metric-card">
+                                    <div class="metric-card-header">
+                                        Total Marks
+                                    </div>
+                                    <div class="metric-card-value">
+                                        ${utils.formatNumber(studentData['Total Marks'])}
+                                        ${utils.getTrendIndicator(improvement.marks)}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="metric-card">
+                                    <div class="metric-card-header">
+                                        Rank
+                                    </div>
+                                    <div class="metric-card-value">
+                                        ${studentData.Rank}
+                                        ${utils.getTrendIndicator(improvement.rank)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h5>Section-wise Performance</h5>
+                            ${Object.entries(sections).map(([id, name]) => `
+                                <div class="metric-card">
+                                    <div class="metric-card-header">
+                                        ${name}
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div>Correct: ${studentData[id + " Correct"] || 0}</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div>Wrong: ${studentData[id + " Wrong"] || 0}</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div>Percentage: ${utils.formatNumber(studentData[id + " Percentage"])}%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <div class="mt-4">
+                            <h5>Analysis</h5>
+                            <div class="analysis-text">
+                                ${test.analysis}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const endTime = performance.now();
+                LOG.info("[Performance]", new Date().toISOString(), `performanceOverview took ${endTime - startTime}ms`, { state });
+                return result;
+            },
+
+            performanceCharts: (series) => {
+                LOG.info("[Component] [performanceCharts]", new Date().toISOString(), "Preparing chart placeholders...", { series, state });
+
+                return `
+                    <div class="analytics-section">
+                        <div class="section-header">
+                            <h4>Performance Trends</h4>
+                        </div>
+                        <div class="chart-container" id="marksChart"></div>
+                        <div class="chart-container" id="rankChart"></div>
+                    </div>
+                `;
+            },
+
+            questionAnalysis: (test, series) => {
+                LOG.info("[Component] [questionAnalysis]", new Date().toISOString(), "Rendering question analysis...", { test, series, state });
+                const startTime = performance.now();
+
+                const sections = series.sections;
+                const metrics = test.class_metrics;
+                const result = `
+                    <div class="analytics-section">
+                        <div class="section-header">
+                            <h4>Question Analysis</h4>
+                        </div>
+                        
+                        <!-- Question Grid Section -->
+                        ${Object.entries(sections).map(([sectionId, sectionName]) => `
+                            <div class="mb-4">
+                                <h5 class="mb-3">${sectionName}</h5>
+                                <div class="question-grid" id="questionGrid-${sectionId}">
+                                    ${Array.from({ length: 30 }, (_, i) => {
+                                        const questionKey = `Section${sectionId}-Q${i + 1}`;
+                                        const response = test.student_data[questionKey];
+                                        const resultClass = response ? utils.getResultClass(response) : 'skipped';
+                                        return `
+                                            <div class="question-cell"
+                                                 data-result="${resultClass}"
+                                                 data-question="${questionKey}"
+                                                 data-response="${response || 'Not Attempted'}"
+                                                 onmouseover="handlers.showQuestionTooltip(event)"
+                                                 onmouseout="handlers.hideQuestionTooltip()">
+                                                ${i + 1}
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+
+                        <!-- Top Questions Analysis -->
+                        <div class="mt-5">
+                            <h5>Strategic Analysis</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="metric-card">
+                                        <div class="metric-card-header">
+                                            Performance on Common Questions
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <small>Correct Questions Success</small>
+                                                <div class="h4">${utils.formatNumber(metrics.top_questions_analysis.commonly_correct_success_rate * 100)}%</div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small>Wrong Questions Avoidance</small>
+                                                <div class="h4">${utils.formatNumber(metrics.top_questions_analysis.commonly_wrong_avoidance_rate * 100)}%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="metric-card">
+                                        <div class="metric-card-header">
+                                            Strategic Metrics
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <small>Skip Strategy Alignment</small>
+                                                <div class="h4">${utils.formatNumber(metrics.top_questions_analysis.strategic_skip_alignment * 100)}%</div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small>Overall Strategic Score</small>
+                                                <div class="h4">${utils.formatNumber(metrics.top_questions_analysis.strategic_score * 100)}%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const endTime = performance.now();
+                LOG.info("[Performance]", new Date().toISOString(), `questionAnalysis took ${endTime - startTime}ms`, { state });
+                return result;
+            },
+
+            patternAnalysis: (test) => {
+                LOG.info("[Component] [patternAnalysis]", new Date().toISOString(), "Rendering pattern analysis...", { test, state });
+                const startTime = performance.now();
+
+                const patterns = test.class_metrics.response_patterns;
+                const result = `
+                    <div class="analytics-section">
+                        <div class="section-header">
+                            <h4>Pattern Recognition</h4>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="metric-card">
+                                    <div class="metric-card-header">Success Streaks</div>
+                                    <div class="metric-card-value">
+                                        ${patterns.longest_success_streak}
+                                        <small class="d-block text-muted">Consecutive Correct</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="metric-card">
+                                    <div class="metric-card-header">Recovery Rate</div>
+                                    <div class="metric-card-value">
+                                        ${utils.formatNumber(patterns.recovery_rate * 100)}%
+                                        <small class="d-block text-muted">Wrong to Correct</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="metric-card">
+                                    <div class="metric-card-header">Skip Strategy</div>
+                                    <div class="metric-card-value">
+                                        ${utils.formatNumber(patterns.skip_strategy_score * 100)}%
+                                        <small class="d-block text-muted">Effectiveness</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const endTime = performance.now();
+                LOG.info("[Performance]", new Date().toISOString(), `patternAnalysis took ${endTime - startTime}ms`, { state });
+                return result;
+            },
+
+            essayAnalysis: (test) => {
+                LOG.info("[Component] [essayAnalysis]", new Date().toISOString(), "Checking essay data...", { test, state });
+                const startTime = performance.now();
+
+                const studentData = test.student_data;
+                const essayFields = ['Essay 1', 'Essay 2', 'Essay 3', 'Essay 4'];
+                const hasEssayData = essayFields.some(field => studentData[field] !== undefined);
+
+                if (!hasEssayData) {
+                    LOG.warn("[Component] [essayAnalysis]", new Date().toISOString(), "No essay data found.", { test, state });
+                    return `
+                        <div class="analytics-section">
+                            <div class="alert alert-warning">No essay data available for this test.</div>
+                        </div>
+                    `;
+                }
+
+                const result = `
+                    <div class="analytics-section">
+                        <div class="section-header">
+                            <h4>Essay Performance Analysis</h4>
+                            <p class="text-muted">Detailed breakdown of essay scores and comparative analysis</p>
+                        </div>
+                        <div class="row">
+                            ${essayFields.map(essay => `
+                                <div class="col-md-6 mb-4">
+                                    <div class="metric-card">
+                                        <div class="metric-card-header">
+                                            <h5>${essay}</h5>
+                                            <p class="text-muted small mb-0">Individual essay performance analysis</p>
+                                        </div>
+                                        <div class="metric-card-value">
+                                            ${studentData[essay] !== undefined ? utils.formatNumber(studentData[essay]) : 'N/A'}
+                                        </div>
+                                        <div class="progress mt-2" style="height: 5px;">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: ${studentData[essay] ? (studentData[essay] / 25) * 100 : 0}%"
+                                                 aria-valuenow="${studentData[essay] || 0}" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="25">
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 small">
+                                            <span class="text-muted">Score out of 25</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="metric-card">
+                                    <div class="metric-card-header">
+                                        <h5>Overall Essay Performance</h5>
+                                        <p class="text-muted small mb-0">Comprehensive essay score analysis</p>
+                                    </div>
+                                    <div class="row align-items-center">
+                                        <div class="col-md-6">
+                                            <div class="h3 mb-0">
+                                                ${utils.formatNumber(essayFields.reduce((sum, essay) => sum + (studentData[essay] || 0), 0))}
+                                                <small class="text-muted">/ 100</small>
+                                            </div>
+                                            <p class="text-muted small">Total Essay Score</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="h3 mb-0">
+                                                ${
+                                                    utils.formatNumber(
+                                                        (essayFields.reduce((sum, essay) => sum + (studentData[essay] || 0), 0) / 100) * 100
+                                                    )
+                                                }%
+                                            </div>
+                                            <p class="text-muted small">Overall Percentage</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                const endTime = performance.now();
+                LOG.info("[Performance]", new Date().toISOString(), `essayAnalysis took ${endTime - startTime}ms`, { state });
+                return result;
+            },
+
+            peerComparison: (test) => {
+                LOG.info("[Component] [peerComparison]", new Date().toISOString(), "Analyzing peer group data...", { test, state });
+                const startTime = performance.now();
+
+                const peerData = test.class_metrics.peer_group_gaps;
+                const result = `
+                    <div class="analytics-section">
+                        <div class="section-header">
+                            <h4>Peer Group Comparison</h4>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="metric-card">
+                                    <div class="metric-card-header">Overall Performance</div>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <small>Your Marks</small>
+                                            <div class="h4">${utils.formatNumber(peerData.student_marks)}</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small>Peer Average</small>
+                                            <div class="h4">${utils.formatNumber(peerData.peer_marks_avg)}</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted">Gap vs Peers:</small>
+                                        <span class="${peerData.mark_gap_vs_peer >= 0 ? 'text-success' : 'text-danger'}">
+                                            ${peerData.mark_gap_vs_peer >= 0 ? '+' : ''}${utils.formatNumber(peerData.mark_gap_vs_peer)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="metric-card">
+                                    <div class="metric-card-header">Section-wise Comparison</div>
+                                    ${Object.entries(peerData.peer_avgs).map(([section, avg]) => `
+                                        <div class="mb-2">
+                                            <small>${section.replace('section_', 'Section ').replace('_avg', '')}</small>
+                                            <div class="progress">
+                                                <div class="progress-bar" role="progressbar" 
+                                                     style="width: ${avg}%"
+                                                     aria-valuenow="${avg}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                    ${utils.formatNumber(avg)}%
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                const endTime = performance.now();
+                LOG.info("[Performance]", new Date().toISOString(), `peerComparison took ${endTime - startTime}ms`, { state });
+                return result;
+            },
+
+            fullAnalysis: (studentId) => {
+                const componentName = "fullAnalysis";
+                LOG.info(`[Component] [${componentName}]`, new Date().toISOString(), "Rendering analysis for student:", { studentId, state });
+                const startTime = performance.now();
+
+                try {
+                    const student = state.studentsData[studentId];
+                    if (!student) {
+                        LOG.error("[Component] [fullAnalysis]", new Date().toISOString(), "Student not found:", { studentId, state });
+                        return '<div class="alert alert-warning">Student not found</div>';
+                    }
+
+                    const series = student.series[state.selectedSeriesId];
+                    if (!series) {
+                        LOG.error("[Component] [fullAnalysis]", new Date().toISOString(), "Series not found:", {
+                            seriesId: state.selectedSeriesId,
+                            state
+                        });
+                        return '<div class="alert alert-warning">Series not found</div>';
+                    }
+
+                    const test = series.tests[state.selectedTestId];
+                    if (!test) {
+                        LOG.error("[Component] [fullAnalysis]", new Date().toISOString(), "Test not found:", {
+                            testId: state.selectedTestId,
+                            state
+                        });
+                        return '<div class="alert alert-warning">Test not found</div>';
+                    }
+
+                    LOG.info("[Component] [fullAnalysis]", new Date().toISOString(), "Building full analysis content...", {
+                        studentId,
+                        seriesId: state.selectedSeriesId,
+                        testId: state.selectedTestId,
+                        state
+                    });
+
+                    const analysisHtml = `
+                        <div class="alert alert-info mb-4">
+                            <strong>Current View:</strong> ${series.series_name} → ${test.test_name}
+                        </div>
+                        ${components.performanceOverview(student, series, test)}
+                        ${series.essays_included ? components.essayAnalysis(test) : ''}
+                        ${components.performanceCharts(series)}
+                        ${components.questionAnalysis(test, series)}
+                        ${components.patternAnalysis(test)}
+                        ${components.peerComparison(test)}
+                    `;
+
+                    const endTime = performance.now();
+                    LOG.info("[Performance]", new Date().toISOString(), `fullAnalysis took ${endTime - startTime}ms`, { state });
+
+                    return analysisHtml;
+                } catch (error) {
+                    LOG.error("[Component]", new Date().toISOString(), "Error details:", {
+                        componentName,
+                        errorMessage: error.message,
+                        errorStack: error.stack,
+                        state
+                    });
+                    return `<div class="alert alert-danger">Error rendering full analysis: ${error.message}</div>`;
+                }
+            }
+        };
+
+        /*=============================================
+         =        Resource Management & Charts        =
+         =============================================*/
+        const charts = {
+            renderMarksChart: (series) => {
+                const chartName = "marksChart";
+                LOG.info("[ChartRender]", new Date().toISOString(), "Starting chart render for marksChart...", {
+                    dataPresent: !!series.marks_trend,
+                    dataLength: series.marks_trend ? series.marks_trend.length : null,
+                    state
+                });
+
+                const startTime = performance.now();
+                try {
+                    if (!series.test_names || !Array.isArray(series.test_names) || !series.marks_trend) {
+                        LOG.error("[ChartRender] [marksChart]", new Date().toISOString(), "Incomplete data for rendering:", { series, state });
+                        const container = document.getElementById('marksChart');
+                        if (container) {
+                            container.innerHTML = '<div class="alert alert-danger">Error: Unable to render marks chart due to incomplete data.</div>';
+                        }
+                        return;
+                    }
+
+                    const trace = {
+                        x: series.test_names,
+                        y: series.marks_trend,
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        name: 'Marks',
+                        line: {
+                            color: '#2196F3',
+                            width: 2
+                        },
+                        marker: {
+                            size: 8
+                        }
+                    };
+
+                    const layout = {
+                        title: 'Marks Trend',
+                        xaxis: {
+                            title: 'Test',
+                            showgrid: false
+                        },
+                        yaxis: {
+                            title: 'Marks',
+                            zeroline: false
+                        },
+                        margin: { t: 40, l: 60, r: 40, b: 60 },
+                        hovermode: 'closest',
+                        showlegend: false
+                    };
+
+                    Plotly.newPlot('marksChart', [trace], layout, {responsive: true})
+                        .catch(error => {
+                            LOG.error("[ChartRender] [marksChart]", new Date().toISOString(), "Plotly rendering error:", error);
+                            const container = document.getElementById('marksChart');
+                            if (container) {
+                                container.innerHTML = '<div class="alert alert-warning">Failed to render marks chart.</div>';
+                            }
+                        });
+
+                    LOG.info("[ChartRender] [marksChart]", new Date().toISOString(), "Chart rendered successfully.", { state });
+                } catch (error) {
+                    LOG.error("[ChartRender] [marksChart]", new Date().toISOString(), "Error details:", {
+                        errorMessage: error.message,
+                        errorStack: error.stack,
+                        state
+                    });
+                    const container = document.getElementById('marksChart');
+                    if (container) {
+                        container.innerHTML = '<div class="alert alert-danger">Error rendering marks chart.</div>';
+                    }
+                }
+                const endTime = performance.now();
+                LOG.info("[Performance]", new Date().toISOString(), `renderMarksChart took ${endTime - startTime}ms`, { state });
+            },
+
+            renderRankChart: (series) => {
+                const chartName = "rankChart";
+                LOG.info("[ChartRender]", new Date().toISOString(), "Starting chart render for rankChart...", {
+                    dataPresent: !!series.rank_trend,
+                    dataLength: series.rank_trend ? series.rank_trend.length : null,
+                    state
+                });
+
+                const startTime = performance.now();
+                try {
+                    if (!series.test_names || !Array.isArray(series.test_names) || !series.rank_trend) {
+                        LOG.error("[ChartRender] [rankChart]", new Date().toISOString(), "Incomplete data for rendering:", { series, state });
+                        const container = document.getElementById('rankChart');
+                        if (container) {
+                            container.innerHTML = '<div class="alert alert-danger">Error: Unable to render rank chart due to incomplete data.</div>';
+                        }
+                        return;
+                    }
+
+                    const trace = {
+                        x: series.test_names,
+                        y: series.rank_trend,
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        name: 'Rank',
+                        line: {
+                            color: '#F44336',
+                            width: 2
+                        },
+                        marker: {
+                            size: 8
+                        }
+                    };
+
+                    const layout = {
+                        title: 'Rank Trend',
+                        xaxis: {
+                            title: 'Test',
+                            showgrid: false
+                        },
+                        yaxis: {
+                            title: 'Rank',
+                            autorange: 'reversed',
+                            zeroline: false
+                        },
+                        margin: { t: 40, l: 60, r: 40, b: 60 },
+                        hovermode: 'closest',
+                        showlegend: false
+                    };
+
+                    Plotly.newPlot('rankChart', [trace], layout, {responsive: true})
+                        .catch(error => {
+                            LOG.error("[ChartRender] [rankChart]", new Date().toISOString(), "Plotly rendering error:", error);
+                            const container = document.getElementById('rankChart');
+                            if (container) {
+                                container.innerHTML = '<div class="alert alert-warning">Failed to render rank chart.</div>';
+                            }
+                        });
+
+                    LOG.info("[ChartRender] [rankChart]", new Date().toISOString(), "Chart rendered successfully.", { state });
+                } catch (error) {
+                    LOG.error("[ChartRender] [rankChart]", new Date().toISOString(), "Error details:", {
+                        errorMessage: error.message,
+                        errorStack: error.stack,
+                        state
+                    });
+                    const container = document.getElementById('rankChart');
+                    if (container) {
+                        container.innerHTML = '<div class="alert alert-danger">Error rendering rank chart.</div>';
+                    }
+                }
+                const endTime = performance.now();
+                LOG.info("[Performance]", new Date().toISOString(), `renderRankChart took ${endTime - startTime}ms`, { state });
+            }
+        };
+
+        /*=============================================
+         =            Rendering Functions             =
+         =============================================*/
+        function renderStudentList() {
+            LOG.info("[Render] [renderStudentList]", new Date().toISOString(), "Rendering student list...", { state });
+            const container = document.getElementById('studentList');
+            if (!container) {
+                LOG.error("[Render] [renderStudentList]", new Date().toISOString(), "studentList container not found!", { state });
+                return;
+            }
+            container.innerHTML = Object.entries(state.studentsData)
+                .map(([id, data]) => components.studentCard(id, data))
+                .join('');
+        }
+
+        function renderAnalysis() {
+            LOG.info("[Render] [renderAnalysis]", new Date().toISOString(), "Rendering main analysis view...", { state });
+            if (!state.selectedStudentId) {
+                LOG.warn("[Render] [renderAnalysis]", new Date().toISOString(), "No student selected!", { state });
+                return;
+            }
+            const container = document.getElementById('analysisContent');
+            if (!container) {
+                LOG.error("[Render] [renderAnalysis]", new Date().toISOString(), "analysisContent container not found!", { state });
+                return;
+            }
+            container.innerHTML = components.fullAnalysis(state.selectedStudentId);
+            
+            // Render charts after DOM is updated
+            const student = state.studentsData[state.selectedStudentId];
+            if (!student) return;
+
+            const series = student.series[state.selectedSeriesId];
+            if (!series) {
+                LOG.warn("[Render] [renderAnalysis]", new Date().toISOString(), "No series found/selected. Cannot render charts.", { state });
+                return;
+            }
+            charts.renderMarksChart(series);
+            charts.renderRankChart(series);
+        }
+
+        /*=============================================
+         =        Error Handling & Recovery           =
+         =============================================*/
+        function cleanupAndRecover() {
+            LOG.info("[Cleanup]", new Date().toISOString(), "Starting cleanup and recovery...", { state });
+            
+            // Validate state. If invalid, reset.
+            if (!validateState()) {
+                LOG.warn("[Cleanup]", new Date().toISOString(), "State is invalid. Resetting critical fields...", { state });
+                state.studentsData = null;
+                state.selectedStudentId = null;
+                state.selectedSeriesId = null;
+                state.selectedTestId = null;
+                state.charts = {};
+            }
+
+            // Remove any leftover tooltips
+            const tooltips = document.querySelectorAll('.custom-tooltip');
+            tooltips.forEach(tooltip => tooltip.remove());
+
+            LOG.info("[Cleanup]", new Date().toISOString(), "Cleanup completed", { state });
+        }
+
+        /*=============================================
+         =       Initialization & Performance         =
+         =============================================*/
+        function initialize(data) {
+            LOG.info("[Initialize]", new Date().toISOString(), "Starting initialization with enhanced behavior...", {});
+
+            return new Promise((resolve, reject) => {
+                try {
+                    // Basic data checks
+                    if (!data || typeof data !== 'object') {
+                        throw new Error("Invalid data format received");
+                    }
+
+                    // Set the global state
+                    state.studentsData = data;
+                    
+                    // Create a tooltip if it does not exist
+                    if (!document.querySelector('.custom-tooltip')) {
+                        utils.createTooltip();
+                    }
+
+                    // Get list of students
+                    const studentIds = Object.keys(data);
+                    if (!studentIds.length) {
+                        throw new Error("No student data available");
+                    }
+
+                    // Select the first student
+                    const firstStudentId = studentIds[0];
+                    LOG.info("[Initialize]", new Date().toISOString(), "Auto-selecting first student:", { firstStudentId });
+                    
+                    // Attempt to select the student
+                    handlers.selectStudent(firstStudentId);
+
+                    resolve();
+                } catch (error) {
+                    LOG.error("[Initialize]", new Date().toISOString(), "Initialization failed:", { error, state });
+                    reject(error);
+                }
+            });
+        }
+
+        // Injected students data from server side
+        // For production usage, you would replace {{ students_data|safe }} with actual data or a fetch call.
+        const studentsData = JSON.parse('{{ students_data|safe|escapejs }}');
+
+
+        /*=============================================
+         =          DOMContentLoaded Entry            =
+         =============================================*/
+        document.addEventListener('DOMContentLoaded', () => {
+            LOG.info("[DOMContentLoaded]", new Date().toISOString(), "Document is ready. Starting initialization...", {});
+
+            const analysisContent = document.getElementById('analysisContent');
+
+            // Helper to show an error in the UI
+            function showError(message) {
+                if (analysisContent) {
+                    analysisContent.innerHTML = `
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> ${message}
+                            <br>
+                            <small>Please try refreshing the page. If the problem persists, contact support.</small>
+                        </div>
+                    `;
+                }
+            }
+
+            // Try to initialize the application
+            initialize(studentsData)
+                .then(() => {
+                    LOG.info("[Initialize]", new Date().toISOString(), "Successfully completed initialization", { state });
+                })
+                .catch((error) => {
+                    LOG.error("[Initialize]", new Date().toISOString(), "Initialization failed:", { error });
+                    showError(error.message || "Failed to initialize application");
+                });
+        });
+
+        // On window unload, run cleanup to avoid memory leaks
+        window.addEventListener('unload', cleanupAndRecover);
+
+        // Handle window resize for re-rendering charts
+        window.addEventListener('resize', () => {
+            LOG.info("[WindowEvent] [resize]", new Date().toISOString(), "Rerendering charts on resize...", { state });
+            if (state.selectedStudentId) {
+                const student = state.studentsData[state.selectedStudentId];
+                if (!student) return;
+
+                const series = student.series[state.selectedSeriesId];
+                if (series) {
+                    charts.renderMarksChart(series);
+                    charts.renderRankChart(series);
+                } else {
+                    LOG.warn("[WindowEvent] [resize]", new Date().toISOString(), "No series selected; cannot re-render charts.", { state });
+                }
+            }
+        });
+    </script>
 </body>
 </html>

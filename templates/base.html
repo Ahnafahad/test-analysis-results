@@ -1,59 +1,376 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-slate-50">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>{{ title if title else 'Test Analysis Platform' }}</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-<link rel="icon" type="image/png" href="https://img.icons8.com/color/48/analytics.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{{ title if title else 'Test Analysis Platform' }}</title>
+    
+    <!-- Essential Meta Tags for SEO and Social Sharing -->
+    <meta name="description" content="Advanced analytics dashboard for test performance analysis and tracking">
+    <meta name="keywords" content="test analysis, analytics, education, performance tracking">
+    <meta name="author" content="Test Analysis Platform">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="{{ title if title else 'Test Analysis Platform' }}">
+    <meta property="og:description" content="Advanced analytics dashboard for test performance analysis">
+    <meta property="og:type" content="website">
+    
+    <!-- Favicon and App Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="https://img.icons8.com/color/48/analytics.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://img.icons8.com/color/48/analytics.png">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/color/48/analytics.png">
+    
+    <!-- Preload Critical Assets -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Critical CSS -->
+    <style>
+        .loading {
+            display: none;
+        }
+        .loading.active {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+    </style>
+
+    <!-- External CSS Resources -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <a class="navbar-brand" href="{{ url_for('home') }}">
-    <img src="https://img.icons8.com/color/48/analytics.png" width="30" height="30" class="d-inline-block align-top" alt="">
-    Test Analysis
-  </a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
+<body class="h-full">
+    <!-- Loading Overlay -->
+    <div class="loading" id="loadingOverlay">
+        <div class="flex flex-col items-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            <p class="mt-4 text-gray-600">Loading...</p>
+        </div>
+    </div>
 
-  <div class="collapse navbar-collapse" id="navbarMain">
-    <ul class="navbar-nav mr-auto">
-      <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">Home</a></li>
-      <li class="nav-item"><a class="nav-link" href="{{ url_for('create_series') }}">Create Series</a></li>
-      <li class="nav-item">
-        <form class="d-inline" action="{{ url_for('push_to_github') }}" method="post" onsubmit="return confirm('Push updates to GitHub?')">
-          <button class="nav-link btn btn-link text-light" type="submit">Push to GitHub</button>
-        </form>
-      </li>
-      <li class="nav-item"><a class="nav-link" href="{{ url_for('preview_github') }}" target="_blank">Preview GitHub Page</a></li>
-      <li class="nav-item"><a class="nav-link" href="{{ url_for('export_site') }}">Export to GitHub Format</a></li>
-    </ul>
-  </div>
-</nav>
+    <!-- Navigation Header -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <!-- Left Side - Brand and Primary Navigation -->
+                <div class="flex">
+                    <!-- Brand Logo and Name -->
+                    <div class="flex-shrink-0 flex items-center">
+                        <a href="{{ url_for('home') }}" class="flex items-center space-x-3">
+                            <img class="h-8 w-8" src="https://img.icons8.com/color/48/analytics.png" alt="Analytics Logo">
+                            <span class="text-xl font-semibold text-gray-900">Test Analysis</span>
+                        </a>
+                    </div>
 
-<div class="container mt-4 mb-5">
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, msg in messages %}
-      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-        {{ msg }}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
+                    <!-- Primary Navigation Links -->
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <a href="{{ url_for('home') }}" 
+                           class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Home
+                        </a>
+                        <a href="{{ url_for('create_series') }}"
+                           class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Create Series
+                        </a>
+                    </div>
+                </div>
 
-{% block content %}{% endblock %}
-</div>
+                <!-- Right Side - Action Buttons -->
+                <div class="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
+                    <!-- GitHub Actions -->
+                    <form class="inline-flex" action="{{ url_for('push_to_github') }}" method="post" 
+                          onsubmit="return confirm('Push updates to GitHub?')">
+                        <button type="submit" 
+                                class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Push to GitHub
+                        </button>
+                    </form>
+                    
+                    <a href="{{ url_for('preview_github') }}" target="_blank"
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Preview GitHub Page
+                    </a>
+                    
+                    <a href="{{ url_for('export_site') }}"
+                       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Export to GitHub Format
+                    </a>
+                </div>
 
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+                <!-- Mobile Menu Button -->
+                <div class="flex items-center sm:hidden">
+                    <button type="button" 
+                            class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                            aria-controls="mobile-menu"
+                            aria-expanded="false"
+                            onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div class="hidden sm:hidden" id="mobile-menu">
+            <div class="pt-2 pb-3 space-y-1">
+                <a href="{{ url_for('home') }}"
+                   class="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800">
+                    Home
+                </a>
+                <a href="{{ url_for('create_series') }}"
+                   class="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800">
+                    Create Series
+                </a>
+                <form action="{{ url_for('push_to_github') }}" method="post" 
+                      onsubmit="return confirm('Push updates to GitHub?')"
+                      class="block">
+                    <button type="submit"
+                            class="w-full text-left pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800">
+                        Push to GitHub
+                    </button>
+                </form>
+                <a href="{{ url_for('preview_github') }}" target="_blank"
+                   class="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800">
+                    Preview GitHub Page
+                </a>
+                <a href="{{ url_for('export_site') }}"
+                   class="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800">
+                    Export to GitHub Format
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-8 space-y-4">
+                    {% for category, msg in messages %}
+                        <div class="rounded-md p-4 border {% if category == 'success' %}bg-green-50 border-green-400 text-green-700{% elif category == 'danger' %}bg-red-50 border-red-400 text-red-700{% else %}bg-blue-50 border-blue-400 text-blue-700{% endif %} relative" 
+                             role="alert">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    {% if category == 'success' %}
+                                        <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                    {% elif category == 'danger' %}
+                                        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                        </svg>
+                                    {% else %}
+                                        <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                        </svg>
+                                    {% endif %}
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm">{{ msg }}</p>
+                                </div>
+                                <div class="ml-auto pl-3">
+                                    <div class="-mx-1.5 -my-1.5">
+                                        <button type="button" 
+                                                class="inline-flex rounded-md p-1.5 {% if category == 'success' %}text-green-500 hover:bg-green-100{% elif category == 'danger' %}text-red-500 hover:bg-red-100{% else %}text-blue-500 hover:bg-blue-100{% endif %} focus:outline-none focus:ring-2 focus:ring-offset-2 {% if category == 'success' %}focus:ring-green-500{% elif category == 'danger' %}focus:ring-red-500{% else %}focus:ring-blue-500{% endif %}"
+                                                onclick="this.closest('div.rounded-md').remove()">
+                                            <span class="sr-only">Dismiss</span>
+                                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Page Content -->
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-auto">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="text-center text-sm text-gray-500">
+                <p>&copy; {{ now.year if now else '2024' }} Test Analysis Platform. All rights reserved.</p>
+                <div class="mt-2 flex justify-center space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-gray-500">Privacy Policy</a>
+                    <a href="#" class="text-gray-400 hover:text-gray-500">Terms of Service</a>
+                    <a href="#" class="text-gray-400 hover:text-gray-500">Contact Support</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Core JavaScript Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.16.1/plotly.min.js"></script>
+
+    <!-- Custom JavaScript Initialization -->
+    <script>
+        // Global AJAX Setup
+        $.ajaxSetup({
+            beforeSend: function() {
+                document.getElementById('loadingOverlay').classList.add('active');
+            },
+            complete: function() {
+                document.getElementById('loadingOverlay').classList.remove('active');
+            }
+        });
+
+        // Initialize Plotly Configurations
+        const defaultPlotlyConfig = {
+            responsive: true,
+            displayModeBar: true,
+            displaylogo: false,
+            modeBarButtonsToRemove: ['sendDataToCloud', 'editInChartStudio'],
+            toImageButtonOptions: {
+                format: 'png',
+                filename: 'analytics_export',
+                height: 500,
+                width: 700,
+                scale: 2
+            }
+        };
+
+        // Flash Message Auto-Dismiss
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    alert.classList.add('opacity-0');
+                    setTimeout(() => alert.remove(), 300);
+                });
+            }, 5000);
+        });
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        }
+
+        // Form Validation Enhancement
+        function validateForm(formElement) {
+            let isValid = true;
+            const requiredFields = formElement.querySelectorAll('[required]');
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.classList.add('border-red-500');
+                    
+                    // Create error message if doesn't exist
+                    let errorMsg = field.nextElementSibling;
+                    if (!errorMsg || !errorMsg.classList.contains('error-message')) {
+                        errorMsg = document.createElement('p');
+                        errorMsg.classList.add('error-message', 'text-red-500', 'text-sm', 'mt-1');
+                        errorMsg.textContent = 'This field is required';
+                        field.parentNode.insertBefore(errorMsg, field.nextSibling);
+                    }
+                } else {
+                    field.classList.remove('border-red-500');
+                    const errorMsg = field.nextElementSibling;
+                    if (errorMsg && errorMsg.classList.contains('error-message')) {
+                        errorMsg.remove();
+                    }
+                }
+            });
+
+            return isValid;
+        }
+
+        // Dynamic Chart Resizing
+        window.addEventListener('resize', function() {
+            const plots = document.querySelectorAll('.js-plotly-plot');
+            plots.forEach(plot => {
+                Plotly.Plots.resize(plot);
+            });
+        });
+
+        // CSV Export Functionality
+        function exportToCSV(data, filename) {
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + data.map(row => Object.values(row).join(",")).join("\n");
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Print Functionality
+        function printAnalytics() {
+            const printContent = document.querySelector('.analytics-content').innerHTML;
+            const originalContent = document.body.innerHTML;
+            
+            document.body.innerHTML = `
+                <div class="print-header">
+                    <img src="https://img.icons8.com/color/48/analytics.png" alt="Logo" />
+                    <h1>Test Analysis Report</h1>
+                </div>
+                ${printContent}
+            `;
+            
+            window.print();
+            document.body.innerHTML = originalContent;
+            
+            // Reinitialize any necessary JavaScript
+            initializeAllComponents();
+        }
+
+        // Initialize All Components
+        function initializeAllComponents() {
+            // Reinitialize tooltips
+            const tooltips = document.querySelectorAll('[data-tooltip]');
+            tooltips.forEach(tooltip => {
+                // Initialize tooltip functionality
+            });
+
+            // Reinitialize charts
+            const charts = document.querySelectorAll('[data-chart]');
+            charts.forEach(chart => {
+                // Reinitialize chart
+            });
+
+            // Reinitialize event listeners
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    if (!validateForm(this)) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        }
+
+        // Initialize everything when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAllComponents();
+        });
+    </script>
+
+    <!-- Page-specific JavaScript -->
+    {% block page_scripts %}{% endblock %}
+
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
