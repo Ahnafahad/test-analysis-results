@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <!-- MOBILE COMPATIBILITY CHANGE: The viewport meta tag is already present and correct for responsive display. -->
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Test Analysis Dashboard</title>
     
@@ -274,6 +275,18 @@
 
     <!-- Main Content Area -->
     <div class="main-content">
+
+        <!-- MOBILE COMPATIBILITY CHANGE: Added a toggle button to allow users to open/close the sidebar on small screens. -->
+        <!-- This button is only visible on screens below 768px due to the d-md-none class. -->
+        <div class="mb-3 d-block d-md-none">
+            <button class="btn btn-primary" 
+                    style="min-height: 44px;" 
+                    onclick="document.querySelector('.sidebar').classList.toggle('active')">
+                Menu
+            </button>
+        </div>
+        <!-- END MOBILE COMPATIBILITY CHANGE -->
+
         <div id="analysisContent">
             <!-- Analytics content will be populated here -->
         </div>
@@ -1355,7 +1368,7 @@ patternAnalysis: (test) => {
                 });
         });
 
-        // On window unload, run cleanup to avoid memory leaks
+        // On window unload, run cleanup and recovery
         window.addEventListener('unload', cleanupAndRecover);
 
         // Handle window resize for re-rendering charts
