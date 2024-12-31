@@ -1,84 +1,677 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="mb-4">{{ student_name }}</h1>
+<!-- Main Dashboard Container -->
+<div class="min-h-screen bg-gray-50">
+    <!-- Student Information Header -->
+    <div class="bg-white shadow-sm rounded-lg mb-6 p-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div class="flex items-center space-x-4">
+                <div class="bg-blue-100 rounded-full p-3">
+                    <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900" id="student-name">{{ student_name }}</h1>
+                    <p class="text-sm text-gray-500">Student Performance Dashboard</p>
+                </div>
+            </div>
+            <div class="mt-4 md:mt-0 flex space-x-3">
+                <button onclick="printAnalytics()" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    Print Report
+                </button>
+                <button onclick="exportAnalytics()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Export Data
+                </button>
+            </div>
+        </div>
+    </div>
 
-<div class="row">
-  <div class="col-md-6 mb-4">
-    <div class="card shadow-sm">
-      <div class="card-header bg-info text-light">
-        <h5 class="mb-0">Marks Trend</h5>
-      </div>
-      <div class="card-body">
-        <div id="marks-graph"></div>
-      </div>
+    <!-- Performance Trends Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <!-- Marks Trend Card -->
+        <div class="bg-white rounded-lg shadow-sm" id="marks-trend-container">
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-900">Marks Trend Analysis</h2>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="toggleChartView('marks')" class="text-gray-400 hover:text-gray-500">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4">
+                <div id="marks-graph" class="h-80" role="img" aria-label="Marks trend graph"></div>
+                <div id="marks-loading" class="hidden flex justify-center items-center h-80">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                </div>
+                <div id="marks-error" class="hidden flex justify-center items-center h-80 text-red-500">
+                    Failed to load marks trend data. Please try refreshing.
+                </div>
+            </div>
+        </div>
+
+        <!-- Rank Trend Card -->
+        <div class="bg-white rounded-lg shadow-sm" id="rank-trend-container">
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-900">Rank Progression</h2>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="toggleChartView('rank')" class="text-gray-400 hover:text-gray-500">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4">
+                <div id="rank-graph" class="h-80" role="img" aria-label="Rank trend graph"></div>
+                <div id="rank-loading" class="hidden flex justify-center items-center h-80">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                </div>
+                <div id="rank-error" class="hidden flex justify-center items-center h-80 text-red-500">
+                    Failed to load rank trend data. Please try refreshing.
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-  <div class="col-md-6 mb-4">
-    <div class="card shadow-sm">
-      <div class="card-header bg-info text-light">
-        <h5 class="mb-0">Rank Trend</h5>
-      </div>
-      <div class="card-body">
-        <div id="rank-graph"></div>
-      </div>
+
+    <!-- Latest Test Performance Details -->
+    <div class="bg-white rounded-lg shadow-sm mb-6">
+        <div class="p-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-900">Latest Test Performance</h2>
+        </div>
+        <div class="p-4">
+            <!-- Section Performance Table -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Section</th>
+                            <th scope="col" class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Performance Metrics</th>
+                            <th scope="col" class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Analysis</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for sec_id, sec_name in sections.items() %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="font-medium text-gray-900">{{ sec_name }}</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col space-y-1">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-green-600">Correct: {{ last_test[sec_id ~ " Correct"]|default(0, true) }}</span>
+                                        <span class="text-red-600">Wrong: {{ last_test[sec_id ~ " Wrong"]|default(0, true) }}</span>
+                                    </div>
+                                    <div class="text-gray-500">
+                                        Marks: {{ last_test[sec_id ~ " Marks"]|default(0, true) }}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center">
+                                    {% set correct = last_test[sec_id ~ " Correct"]|default(0, true) %}
+                                    {% set wrong = last_test[sec_id ~ " Wrong"]|default(0, true) %}
+                                    {% set total = correct + wrong %}
+                                    {% if total > 0 %}
+                                        {% set accuracy = (correct / total * 100)|round(1) %}
+                                        <div class="flex-1">
+                                            <div class="flex items-center">
+                                                <div class="flex-1 bg-gray-200 rounded-full h-2">
+                                                    <div class="bg-blue-600 h-2 rounded-full" style="width: {{ accuracy }}%"></div>
+                                                </div>
+                                                <span class="ml-2 text-sm text-gray-500">{{ accuracy }}%</span>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-gray-400">No attempts</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Essay Scores Section (if applicable) -->
+            {% if essays_included %}
+            <div class="mt-8">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Essay Performance</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {% for i in range(1, 5) %}
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="text-sm font-medium text-gray-500">Essay {{ i }}</div>
+                        {% set essay_score = last_test["Essay " ~ i]|default(0, true) %}
+                        <div class="mt-1">
+                            <div class="flex items-center">
+                                <div class="text-2xl font-semibold text-gray-900">{{ essay_score }}</div>
+                                <div class="ml-2 flex-1">
+                                    <div class="bg-gray-200 rounded-full h-2">
+                                        <div class="bg-green-500 h-2 rounded-full" style="width: {{ (essay_score / 20 * 100)|round }}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
     </div>
-  </div>
 </div>
 
+{% endblock %}
+
+{% block page_scripts %}
 <script>
-var marksData = {{ marks_graphJSON|safe }};
-Plotly.newPlot('marks-graph', marksData.data, marksData.layout);
+// Configuration and Initialization
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize charts with error handling
+    try {
+        initializeCharts();
+    } catch (error) {
+        console.error('Error initializing charts:', error);
+        handleChartError();
+    }
 
-var rankData = {{ rank_graphJSON|safe }};
-Plotly.newPlot('rank-graph', rankData.data, rankData.layout);
-</script>
+    // Set up event listeners
+    setupEventListeners();
+});
 
-<div class="card shadow-sm mt-4">
-  <div class="card-header bg-dark text-light">
-    <h5 class="mb-0">Last Test Details</h5>
-  </div>
-  <div class="card-body">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Section</th>
-          <th>Correct/Wrong/Marks</th>
-        </tr>
-      </thead>
-      <tbody>
-      {% for sec_id, sec_name in sections.items() %}
-        <tr>
-          <td><strong>{{ sec_name }}</strong></td>
-          <td>
-            Correct: {{ last_test[sec_id ~ " Correct"] if (sec_id ~ " Correct") in last_test else "" }} |
-            Wrong: {{ last_test[sec_id ~ " Wrong"] if (sec_id ~ " Wrong") in last_test else "" }} |
-            Marks: {{ last_test[sec_id ~ " Marks"] if (sec_id ~ " Marks") in last_test else "" }}
-          </td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-    {% if essays_included %}
-    <h5>Essay Scores</h5>
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Essay 1</th>
-          <th>Essay 2</th>
-          <th>Essay 3</th>
-          <th>Essay 4</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>{{ last_test["Essay 1"] if "Essay 1" in last_test else "" }}</td>
-          <td>{{ last_test["Essay 2"] if "Essay 2" in last_test else "" }}</td>
-          <td>{{ last_test["Essay 3"] if "Essay 3" in last_test else "" }}</td>
-          <td>{{ last_test["Essay 4"] if "Essay 4" in last_test else "" }}</td>
-        </tr>
-      </tbody>
-    </table>
-    {% endif %}
-  </div>
-</div>
+// Chart Initialization
+function initializeCharts() {
+    // Show loading states
+    document.getElementById('marks-loading').classList.remove('hidden');
+    document.getElementById('rank-loading').classList.remove('hidden');
+
+    // Enhanced Plotly configuration
+    const config = {
+        responsive: true,
+        displayModeBar: true,
+        displaylogo: false,
+        modeBarButtonsToRemove: ['sendDataToCloud', 'editInChartStudio'],
+        toImageButtonOptions: {
+            format: 'png',
+            filename: 'analytics_export',
+            height: 500,
+            width: 700,
+            scale: 2
+        }
+    };
+
+    // Initialize Marks Chart
+    try {
+        const marksData = {{ marks_graphJSON|safe }};
+        Plotly.newPlot('marks-graph', marksData.data, {
+            ...marksData.layout,
+            margin: { t: 30, r: 30, b: 40, l: 60 },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            showlegend: true,
+            hovermode: 'closest',
+            xaxis: {
+                ...marksData.layout.xaxis,
+                gridcolor: '#f3f4f6'
+            },
+            yaxis: {
+                ...marksData.layout.yaxis,
+                gridcolor: '#f3f4f6'
+            }
+        }, config);
+    } catch (error) {
+        console.error('Error initializing marks chart:', error);
+        handleChartError('marks');
+    }
+
+    // Initialize Rank Chart
+    try {
+        const rankData = {{ rank_graphJSON|safe }};
+        Plotly.newPlot('rank-graph', rankData.data, {
+            ...rankData.layout,
+            margin: { t: 30, r: 30, b: 40, l: 60 },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            showlegend: true,
+            hovermode: 'closest',
+            xaxis: {
+                ...rankData.layout.xaxis,
+                gridcolor: '#f3f4f6'
+            },
+            yaxis: {
+                ...rankData.layout.yaxis,
+                gridcolor: '#f3f4f6',
+                autorange: 'reversed'
+            }
+        }, config);
+    } catch (error) {
+        console.error('Error initializing rank chart:', error);
+        handleChartError('rank');
+    }
+
+    // Hide loading states
+    document.getElementById('marks-loading').classList.add('hidden');
+    document.getElementById('rank-loading').classList.add('hidden');
+}
+
+// Error Handling for Charts
+function handleChartError(chartType = null) {
+    if (chartType === 'marks' || !chartType) {
+        document.getElementById('marks-loading').classList.add('hidden');
+        document.getElementById('marks-error').classList.remove('hidden');
+    }
+    if (chartType === 'rank' || !chartType) {
+        document.getElementById('rank-loading').classList.add('hidden');
+        document.getElementById('rank-error').classList.remove('hidden');
+    }
+}
+
+// Event Listeners Setup
+function setupEventListeners() {
+    // Window resize handler with debouncing
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            const marksGraph = document.getElementById('marks-graph');
+            const rankGraph = document.getElementById('rank-graph');
+            if (marksGraph) Plotly.Plots.resize(marksGraph);
+            if (rankGraph) Plotly.Plots.resize(rankGraph);
+        }, 250);
+    });
+
+    // Add error event listeners for chart containers
+    const chartContainers = ['marks-graph', 'rank-graph'];
+    chartContainers.forEach(containerId => {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.addEventListener('plotly_error', function(error) {
+                console.error(`Error in ${containerId}:`, error);
+                handleChartError(containerId.split('-')[0]);
+            });
+        }
+    });
+}
+
+// Chart View Toggle Functionality
+function toggleChartView(chartType) {
+    const container = document.getElementById(`${chartType}-graph`);
+    if (!container) return;
+
+    if (chartType === 'marks') {
+        Plotly.update(container, {}, {
+            'xaxis.type': container.layout.xaxis.type === 'date' ? 'category' : 'date'
+        });
+    } else if (chartType === 'rank') {
+        Plotly.update(container, {}, {
+            'yaxis.type': container.layout.yaxis.type === 'linear' ? 'log' : 'linear'
+        });
+    }
+}
+
+// Analytics Export Functionality
+function exportAnalytics() {
+    try {
+        // Prepare export data
+        const exportData = {
+            studentName: document.getElementById('student-name').textContent,
+            marks: {
+                graph: document.getElementById('marks-graph').data,
+                layout: document.getElementById('marks-graph').layout
+            },
+            rank: {
+                graph: document.getElementById('rank-graph').data,
+                layout: document.getElementById('rank-graph').layout
+            },
+            timestamp: new Date().toISOString()
+        };
+
+        // Convert to blob and trigger download
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `${exportData.studentName.replace(/\s+/g, '_')}_analytics_${new Date().toISOString().split('T')[0]}.json`;
+        
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        // Show success notification
+        showNotification('Analytics data exported successfully', 'success');
+    } catch (error) {
+        console.error('Export failed:', error);
+        showNotification('Failed to export analytics data', 'error');
+    }
+}
+
+// Print Analytics Functionality
+function printAnalytics() {
+    // Store the current page content
+    const originalContent = document.body.innerHTML;
+    const studentName = document.getElementById('student-name').textContent;
+
+    try {
+        // Create print-optimized content
+        const printContent = `
+            <div class="print-container" style="padding: 20px;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="font-size: 24px; color: #1a365d;">${studentName} - Performance Analysis</h1>
+                    <p style="color: #4a5568;">Generated on ${new Date().toLocaleString()}</p>
+                </div>
+                
+                <div style="margin-bottom: 40px;">
+                    <h2 style="font-size: 20px; color: #2d3748; margin-bottom: 15px;">Performance Trends</h2>
+                    <div style="page-break-inside: avoid;">
+                        <div id="print-marks-graph" style="height: 400px;"></div>
+                    </div>
+                    <div style="page-break-inside: avoid; margin-top: 30px;">
+                        <div id="print-rank-graph" style="height: 400px;"></div>
+                    </div>
+                </div>
+
+                <div style="page-break-before: always;">
+                    <h2 style="font-size: 20px; color: #2d3748; margin-bottom: 15px;">Latest Test Analysis</h2>
+                    ${document.querySelector('.overflow-x-auto').outerHTML}
+                </div>
+            </div>
+        `;
+
+        // Replace content and add print styles
+        document.body.innerHTML = printContent;
+
+        // Reinitialize charts for printing
+        const marksData = {{ marks_graphJSON|safe }};
+        const rankData = {{ rank_graphJSON|safe }};
+
+        Promise.all([
+            Plotly.newPlot('print-marks-graph', marksData.data, {
+                ...marksData.layout,
+                width: 800,
+                height: 400,
+                margin: { t: 30, r: 30, b: 40, l: 60 }
+            }),
+            Plotly.newPlot('print-rank-graph', rankData.data, {
+                ...rankData.layout,
+                width: 800,
+                height: 400,
+                margin: { t: 30, r: 30, b: 40, l: 60 }
+            })
+        ]).then(() => {
+            // Trigger print
+            window.print();
+            
+            // Restore original content
+            document.body.innerHTML = originalContent;
+            
+            // Reinitialize the page
+            initializeCharts();
+            setupEventListeners();
+        }).catch(error => {
+            console.error('Error preparing print view:', error);
+            showNotification('Failed to prepare print view', 'error');
+            
+            // Restore original content
+            document.body.innerHTML = originalContent;
+            initializeCharts();
+            setupEventListeners();
+        });
+    } catch (error) {
+        console.error('Print preparation failed:', error);
+        showNotification('Failed to prepare print view', 'error');
+        
+        // Restore original content
+        document.body.innerHTML = originalContent;
+        initializeCharts();
+        setupEventListeners();
+    }
+}
+
+// Notification System
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out ${
+        type === 'success' ? 'bg-green-500' :
+        type === 'error' ? 'bg-red-500' :
+        'bg-blue-500'
+    } text-white`;
+    
+    notification.innerHTML = `
+        <div class="flex items-center space-x-3">
+            <div class="flex-shrink-0">
+                ${type === 'success' ? `
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                ` : type === 'error' ? `
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                ` : `
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                `}
+            </div>
+            <div>${message}</div>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Animate in
+    setTimeout(() => {
+        notification.classList.add('translate-y-0', 'opacity-100');
+        notification.classList.remove('translate-y-full', 'opacity-0');
+    }, 100);
+
+    // Animate out and remove
+    setTimeout(() => {
+        notification.classList.add('translate-y-full', 'opacity-0');
+        notification.classList.remove('translate-y-0', 'opacity-100');
+        setTimeout(() => notification.remove(), 300);
+    }, 5000);
+}
+
+// Performance Optimization
+const resizeObserver = new ResizeObserver(entries => {
+    entries.forEach(entry => {
+        const graphId = entry.target.id;
+        if (graphId === 'marks-graph' || graphId === 'rank-graph') {
+            Plotly.Plots.resize(entry.target);
+        }
+    });
+});
+
+// Observe chart containers for size changes
+['marks-graph', 'rank-graph'].forEach(id => {
+    const element = document.getElementById(id);
+    if (element) resizeObserver.observe(element);
+});
+
+// Cleanup function
+function cleanup() {
+    resizeObserver.disconnect();
+    // Additional cleanup as needed
+}
+
+// Comprehensive initialization and lifecycle management
+(function initializeStudentAnalytics() {
+    // Track initialization state
+    let isInitialized = false;
+    let chartInstances = {
+        marks: null,
+        rank: null
+    };
+    
+    // Configuration state management
+    const analyticsState = {
+        charts: {
+            isLoading: false,
+            hasError: false,
+            lastUpdate: null
+        },
+        pageState: {
+            isPrinting: false,
+            isExporting: false
+        }
+    };
+
+    // Initialize everything when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            console.log('Initializing student analytics dashboard...');
+            
+            // Initialize core functionality
+            initializeCharts().then(() => {
+                setupEventListeners();
+                initializeResizeObservers();
+                setupErrorHandlers();
+                initializeNotificationSystem();
+                
+                // Track successful initialization
+                isInitialized = true;
+                analyticsState.charts.lastUpdate = new Date();
+                console.log('Student analytics dashboard initialized successfully');
+                
+                // Emit custom event for external integrations
+                window.dispatchEvent(new CustomEvent('studentAnalyticsReady', {
+                    detail: {
+                        timestamp: new Date(),
+                        status: 'initialized'
+                    }
+                }));
+            }).catch(error => {
+                console.error('Failed to initialize charts:', error);
+                handleInitializationError(error);
+            });
+        } catch (error) {
+            console.error('Critical initialization error:', error);
+            handleCriticalError(error);
+        }
+    });
+
+    // Comprehensive cleanup when leaving the page
+    window.addEventListener('beforeunload', function(event) {
+        try {
+            console.log('Performing comprehensive cleanup...');
+            
+            // Cleanup chart instances
+            if (chartInstances.marks) {
+                Plotly.purge('marks-graph');
+                chartInstances.marks = null;
+            }
+            if (chartInstances.rank) {
+                Plotly.purge('rank-graph');
+                chartInstances.rank = null;
+            }
+            
+            // Disconnect all observers
+            if (resizeObserver) {
+                resizeObserver.disconnect();
+            }
+            
+            // Remove event listeners
+            ['marks-graph', 'rank-graph'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.removeEventListener('plotly_error', handleChartError);
+                    element.removeEventListener('plotly_click', handleChartClick);
+                    element.removeEventListener('plotly_hover', handleChartHover);
+                }
+            });
+            
+            // Clear any pending timeouts or intervals
+            if (window.resizeTimeout) {
+                clearTimeout(window.resizeTimeout);
+            }
+            
+            // Clean up custom event listeners
+            window.removeEventListener('studentAnalyticsReady', null);
+            
+            // Reset state
+            isInitialized = false;
+            analyticsState.charts.isLoading = false;
+            
+            // Log cleanup completion
+            console.log('Cleanup completed successfully');
+            
+            // Emit cleanup event for external integrations
+            window.dispatchEvent(new CustomEvent('studentAnalyticsCleanup', {
+                detail: {
+                    timestamp: new Date(),
+                    status: 'cleaned'
+                }
+            }));
+        } catch (error) {
+            console.error('Error during cleanup:', error);
+            // Attempt emergency cleanup
+            try {
+                emergencyCleanup();
+            } catch (emergencyError) {
+                console.error('Emergency cleanup failed:', emergencyError);
+            }
+        }
+    });
+
+    // Emergency cleanup for critical situations
+    function emergencyCleanup() {
+        console.warn('Performing emergency cleanup...');
+        
+        // Force cleanup of chart instances
+        try {
+            Plotly.purge('marks-graph');
+            Plotly.purge('rank-graph');
+        } catch (e) {
+            console.error('Failed to purge charts:', e);
+        }
+        
+        // Reset all state
+        chartInstances = { marks: null, rank: null };
+        isInitialized = false;
+        
+        console.warn('Emergency cleanup completed');
+    }
+
+    // Critical error handler
+    function handleCriticalError(error) {
+        console.error('Critical error in student analytics:', error);
+        showNotification('A critical error occurred. Please refresh the page.', 'error');
+        
+        // Attempt recovery
+        try {
+            emergencyCleanup();
+            initializeCharts().catch(e => {
+                console.error('Recovery failed:', e);
+                document.body.innerHTML += `
+                    <div class="fixed inset-0 bg-red-50 bg-opacity-90 flex items-center justify-center">
+                        <div class="bg-white p-6 rounded-lg shadow-xl max-w-lg">
+                            <h3 class="text-xl font-bold text-red-600 mb-4">Critical Error</h3>
+                            <p class="text-gray-700">An unrecoverable error has occurred. Please refresh the page or contact support.</p>
+                            <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                                Refresh Page
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        } catch (recoveryError) {
+            console.error('Recovery failed:', recoveryError);
+        }
+    }
+})();
 {% endblock %}

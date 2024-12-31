@@ -1,22 +1,328 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="mb-4">Add a New Test</h1>
-<div class="card shadow-sm">
-  <div class="card-body">
-    <form method="post" enctype="multipart/form-data">
-      <div class="form-group">
-        <label>Test Name</label>
-        <input type="text" class="form-control" name="test_name" required placeholder="e.g. Test 1">
-      </div>
-      <div class="form-group">
-        <label>Excel File</label>
-        <input type="file" class="form-control-file" name="excel_file" required>
-        <small class="form-text text-muted">
-          Upload the Excel file with required format.
-        </small>
-      </div>
-      <button class="btn btn-success mt-3">Upload and Analyze</button>
-    </form>
-  </div>
+<!-- Page Header with Context -->
+<div class="mb-8">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Add a New Test</h1>
+            <p class="mt-2 text-sm text-gray-600">Upload and analyze test results with our advanced analytics system</p>
+        </div>
+        <!-- Help Button -->
+        <button type="button" onclick="toggleHelpPanel()" 
+                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Upload Guidelines
+        </button>
+    </div>
 </div>
-{% endblock %}
+
+<!-- Help Panel (Initially Hidden) -->
+<div id="helpPanel" class="hidden mb-8">
+    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-md">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-medium text-blue-800">Excel File Requirements</h3>
+                <div class="mt-2 text-sm text-blue-700">
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>File must be in .xlsx format (Excel 2007 or newer)</li>
+                        <li>Required sheets: Sheet1, Sheet2, and Sheet3</li>
+                        <li>Sheet1 must contain columns:
+                            <ul class="list-disc pl-5 mt-1">
+                                <li>ID, Name</li>
+                                <li>Section marks (1 Marks, 2 Marks, 3 Marks)</li>
+                                <li>Total Marks in MCQ, Rank in MCQ</li>
+                                {% if essays_included %}
+                                <li>Essay scores (Essay 1-4)</li>
+                                {% endif %}
+                                <li>Total Marks, Rank</li>
+                            </ul>
+                        </li>
+                        <li>Maximum file size: 10MB</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Upload Form -->
+<div class="bg-white rounded-lg shadow-sm overflow-hidden">
+    <div class="p-6">
+        <form method="post" enctype="multipart/form-data" id="uploadForm" class="space-y-6">
+            <!-- Test Name Input -->
+            <div>
+                <label for="test_name" class="block text-sm font-medium text-gray-700">Test Name</label>
+                <div class="mt-1 relative rounded-md shadow-sm">
+                    <input type="text" name="test_name" id="test_name" required
+                           class="block w-full focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md"
+                           placeholder="e.g. Test 1 - Spring 2024"
+                           pattern="^[a-zA-Z0-9\s\-_]{3,50}$"
+                           title="3-50 characters, alphanumeric with spaces, hyphens, and underscores only">
+                    <div class="hidden absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none error-icon">
+                        <svg class="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+                <p class="mt-1 hidden text-sm text-red-600 error-message" id="test_name_error"></p>
+            </div>
+
+            <!-- File Upload Section -->
+            <div>
+                <label for="excel_file" class="block text-sm font-medium text-gray-700">Excel File</label>
+                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                    <div class="space-y-1 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4-4m4-4h8m-4-4v8m-12 4h.02" 
+                                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <div class="flex text-sm text-gray-600">
+                            <label for="excel_file" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                                <span>Upload a file</span>
+                                <input id="excel_file" name="excel_file" type="file" class="sr-only" required
+                                       accept=".xlsx,.xls"
+                                       onchange="validateFile(this)">
+                            </label>
+                            <p class="pl-1">or drag and drop</p>
+                        </div>
+                        <p class="text-xs text-gray-500">Excel files only (.xlsx, .xls)</p>
+                    </div>
+                </div>
+                <div id="file_preview" class="hidden mt-3">
+                    <div class="flex item
+                    if (progress < 33) {
+                      progressStatus.textContent = 'Uploading file...';
+                  } else if (progress < 66) {
+                      progressStatus.textContent = 'Validating Excel structure...';
+                  } else if (progress < 100) {
+                      progressStatus.textContent = 'Processing data...';
+                  } else {
+                      progressStatus.textContent = 'Finalizing...';
+                      clearInterval(progressInterval);
+                  }
+              }
+          }, 100);
+  
+          fetch(uploadForm.action, {
+              method: 'POST',
+              body: formData
+          })
+          .then(response => {
+              clearInterval(progressInterval);
+              if (!response.ok) {
+                  throw new Error('Network response was not ok');
+              }
+              return response.json();
+          })
+          .then(data => {
+              // Handle successful upload
+              window.location.reload();
+          })
+          .catch(error => {
+              clearInterval(progressInterval);
+              submitSpinner.classList.add('hidden');
+              document.getElementById('upload_progress').classList.add('hidden');
+              showError(document.getElementById('excel_file_error'), 
+                       'An error occurred during upload. Please try again.');
+              console.error('Error:', error);
+          });
+      });
+  
+      // Comprehensive form validation
+      function validateForm() {
+          let isValid = true;
+          const testName = document.getElementById('test_name');
+          const testNameError = document.getElementById('test_name_error');
+          const fileError = document.getElementById('excel_file_error');
+  
+          // Validate test name
+          if (!testName.value.trim()) {
+              showError(testNameError, 'Test name is required');
+              testName.classList.add('border-red-500');
+              isValid = false;
+          } else if (!testName.value.match(/^[a-zA-Z0-9\s\-_]{3,50}$/)) {
+              showError(testNameError, 'Test name must be 3-50 characters long and contain only letters, numbers, spaces, hyphens, and underscores');
+              testName.classList.add('border-red-500');
+              isValid = false;
+          } else {
+              testNameError.classList.add('hidden');
+              testName.classList.remove('border-red-500');
+          }
+  
+          // Validate file
+          if (!fileInput.files || !fileInput.files[0]) {
+              showError(fileError, 'Please select an Excel file');
+              isValid = false;
+          }
+  
+          return isValid;
+      }
+  
+      // Drag and drop handling
+      dropZone.addEventListener('dragenter', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dragCounter++;
+          if (dragCounter === 1) {
+              this.classList.add('border-blue-500', 'bg-blue-50');
+          }
+      });
+  
+      dropZone.addEventListener('dragleave', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dragCounter--;
+          if (dragCounter === 0) {
+              this.classList.remove('border-blue-500', 'bg-blue-50');
+          }
+      });
+  
+      dropZone.addEventListener('dragover', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+      });
+  
+      dropZone.addEventListener('drop', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dragCounter = 0;
+          this.classList.remove('border-blue-500', 'bg-blue-50');
+  
+          const dt = e.dataTransfer;
+          const files = dt.files;
+  
+          if (files.length > 1) {
+              showError(document.getElementById('excel_file_error'), 
+                       'Please upload only one file');
+              return;
+          }
+  
+          fileInput.files = files;
+          validateFile(fileInput);
+      });
+  
+      // Keyboard accessibility
+      dropZone.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              fileInput.click();
+          }
+      });
+  
+      // File input change monitoring for real-time validation
+      let previousFileValue = '';
+      setInterval(() => {
+          if (fileInput.value !== previousFileValue) {
+              previousFileValue = fileInput.value;
+              validateFile(fileInput);
+          }
+      }, 100);
+  
+      // Memory management - cleanup on page unload
+      window.addEventListener('unload', function() {
+          clearFileInput();
+          // Clear any remaining intervals
+          for (let i = 1; i < 99999; i++) {
+              window.clearInterval(i);
+          }
+      });
+  
+      // Debounced input validation for test name
+      let debounceTimeout;
+      document.getElementById('test_name').addEventListener('input', function() {
+          clearTimeout(debounceTimeout);
+          debounceTimeout = setTimeout(() => {
+              validateForm();
+          }, 300);
+      });
+  
+      // Handle browser back/forward cache
+      window.addEventListener('pageshow', function(event) {
+          if (event.persisted) {
+              // Page was restored from back/forward cache
+              clearFileInput();
+              uploadForm.reset();
+              document.getElementById('upload_progress').classList.add('hidden');
+              submitSpinner.classList.add('hidden');
+          }
+      });
+  
+      // Prevent accidental navigation while upload is in progress
+      window.addEventListener('beforeunload', function(e) {
+          if (!submitSpinner.classList.contains('hidden')) {
+              e.preventDefault();
+              e.returnValue = '';
+          }
+      });
+  
+      // Initialize custom file input styling
+      function initializeFileInput() {
+          const fileInput = document.getElementById('excel_file');
+          const fileLabel = document.querySelector('label[for="excel_file"]');
+          
+          fileLabel.addEventListener('keydown', function(e) {
+              if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  fileInput.click();
+              }
+          });
+          
+          fileLabel.addEventListener('click', function(e) {
+              e.preventDefault();
+              fileInput.click();
+          });
+      }
+  
+      // Initialize tooltips for validation messages
+      function initializeTooltips() {
+          const tooltipTriggers = document.querySelectorAll('[data-tooltip]');
+          tooltipTriggers.forEach(trigger => {
+              trigger.addEventListener('mouseenter', showTooltip);
+              trigger.addEventListener('mouseleave', hideTooltip);
+              trigger.addEventListener('focus', showTooltip);
+              trigger.addEventListener('blur', hideTooltip);
+          });
+      }
+  
+      // Initialize all components on page load
+      document.addEventListener('DOMContentLoaded', function() {
+          initializeFileInput();
+          initializeTooltips();
+          
+          // Reset form state
+          uploadForm.reset();
+          clearFileInput();
+          
+          // Set initial focus
+          document.getElementById('test_name').focus();
+      });
+  </script>
+  
+  <!-- Additional Styles for Print -->
+  <style>
+      @media print {
+          .no-print {
+              display: none !important;
+          }
+          
+          body {
+              background: white;
+          }
+          
+          .shadow-sm {
+              box-shadow: none !important;
+          }
+          
+          input, button {
+              border: 1px solid #ccc !important;
+          }
+      }
+  </style>
+  {% endblock %}                    

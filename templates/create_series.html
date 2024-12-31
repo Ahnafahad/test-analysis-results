@@ -1,35 +1,172 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="mb-4">Create New Series</h1>
-<div class="card shadow-sm">
-  <div class="card-body">
-    <form method="post">
-      <div class="form-group">
-        <label>Series Name</label>
-        <input type="text" class="form-control" name="series_name" required placeholder="e.g. Midterm Series">
-      </div>
-      <hr>
-      <h5>Section Names</h5>
-      <p>These will remain consistent across the entire series.</p>
-      <div class="form-group">
-        <label>Section 1 Name</label>
-        <input type="text" class="form-control" name="sec1_name" placeholder="e.g. English" required>
-      </div>
-      <div class="form-group">
-        <label>Section 2 Name</label>
-        <input type="text" class="form-control" name="sec2_name" placeholder="e.g. Math" required>
-      </div>
-      <div class="form-group">
-        <label>Section 3 Name</label>
-        <input type="text" class="form-control" name="sec3_name" placeholder="e.g. Science" required>
-      </div>
-      <hr>
-      <div class="form-group form-check">
-        <input type="checkbox" class="form-check-input" name="essays_included">
-        <label class="form-check-label">Include Essays?</label>
-      </div>
-      <button class="btn btn-success">Create</button>
-    </form>
-  </div>
+<div class="space-y-8">
+    <!-- Page Header -->
+    <div class="sm:flex sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Create New Series</h1>
+            <p class="mt-2 text-sm text-gray-700">Configure a new test series with custom sections and options.</p>
+        </div>
+    </div>
+
+    <!-- Main Form Section -->
+    <div class="bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <form method="post" id="createSeriesForm" class="space-y-8" novalidate>
+                <!-- Series Name Section -->
+                <div>
+                    <div class="mb-6">
+                        <label for="series_name" class="block text-sm font-medium text-gray-700">Series Name</label>
+                        <div class="mt-1">
+                            <input type="text" 
+                                   name="series_name" 
+                                   id="series_name" 
+                                   required 
+                                   maxlength="100"
+                                   placeholder="e.g. Midterm Series"
+                                   pattern="[A-Za-z0-9\s\-_]+"
+                                   class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                   aria-describedby="series-name-description">
+                        </div>
+                        <p class="mt-2 text-sm text-gray-500" id="series-name-description">
+                            Choose a descriptive name for your test series
+                        </p>
+                        <div class="hidden mt-2 text-sm text-red-600" id="series-name-error"></div>
+                    </div>
+
+                    <!-- Section Names -->
+                    <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                        <h2 class="text-lg font-medium text-gray-900 mb-4">Section Configuration</h2>
+                        <p class="text-sm text-gray-500 mb-4">
+                            Define the names for each section. These will remain consistent throughout the series.
+                        </p>
+                        
+                        <div class="grid gap-6 mb-6 md:grid-cols-3">
+                            {% for i in range(1, 4) %}
+                            <div>
+                                <label for="sec{{ i }}_name" class="block text-sm font-medium text-gray-700">
+                                    Section {{ i }} Name
+                                </label>
+                                <div class="mt-1">
+                                    <input type="text" 
+                                           name="sec{{ i }}_name" 
+                                           id="sec{{ i }}_name"
+                                           required
+                                           maxlength="50"
+                                           placeholder="e.g. {% if i == 1 %}English{% elif i == 2 %}Math{% else %}Science{% endif %}"
+                                           class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                </div>
+                                <div class="hidden mt-2 text-sm text-red-600" id="sec{{ i }}-name-error"></div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Additional Options -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h2 class="text-lg font-medium text-gray-900 mb-4">Additional Options</h2>
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                <input type="checkbox" 
+                                       name="essays_included" 
+                                       id="essays_included"
+                                       class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <label for="essays_included" class="font-medium text-gray-700">Include Essays</label>
+                                <p class="text-gray-500">Enable this option if the series includes essay-type questions</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-end space-x-3">
+                    <button type="button" 
+                            onclick="window.location.href='{{ url_for('home') }}'"
+                            class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Create Series
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('createSeriesForm');
+    
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Reset previous errors
+        document.querySelectorAll('.text-red-600').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('input').forEach(input => {
+            input.classList.remove('border-red-500');
+        });
+        
+        let isValid = true;
+        
+        // Validate series name
+        const seriesName = document.getElementById('series_name');
+        if (!seriesName.value.trim()) {
+            showError('series-name-error', 'Series name is required');
+            isValid = false;
+        } else if (!seriesName.value.match(/^[A-Za-z0-9\s\-_]+$/)) {
+            showError('series-name-error', 'Series name can only contain letters, numbers, spaces, hyphens, and underscores');
+            isValid = false;
+        }
+        
+        // Validate section names
+        for (let i = 1; i <= 3; i++) {
+            const sectionName = document.getElementById(`sec${i}_name`);
+            if (!sectionName.value.trim()) {
+                showError(`sec${i}-name-error`, `Section ${i} name is required`);
+                isValid = false;
+            }
+        }
+        
+        if (isValid) {
+            // Show loading state
+            document.getElementById('loadingOverlay').classList.add('active');
+            form.submit();
+        }
+    });
+    
+    function showError(elementId, message) {
+        const errorElement = document.getElementById(elementId);
+        errorElement.textContent = message;
+        errorElement.classList.remove('hidden');
+        
+        // Highlight the corresponding input
+        const inputId = elementId.replace('-error', '');
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.classList.add('border-red-500');
+        }
+    }
+    
+    // Real-time validation feedback
+    document.querySelectorAll('input[type="text"]').forEach(input => {
+        input.addEventListener('input', function() {
+            if (this.value.trim()) {
+                this.classList.remove('border-red-500');
+                const errorId = `${this.id}-error`;
+                const errorElement = document.getElementById(errorId);
+                if (errorElement) {
+                    errorElement.classList.add('hidden');
+                }
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

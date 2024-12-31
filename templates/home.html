@@ -1,32 +1,406 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="mb-4">All Test Series</h1>
-<div class="card shadow-sm">
-  <div class="card-body">
-    <table class="table table-hover align-middle">
-      <thead class="thead-dark">
-        <tr>
-          <th>Series Name</th>
-          <th>Number of Tests</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-      {% for s in series_list %}
-        <tr>
-          <td>{{ s.name }}</td>
-          <td>{{ s.tests|length }}</td>
-          <td>
-            <a class="btn btn-primary btn-sm" href="{{ url_for('view_series', series_id=s.id) }}">View</a>
-            <form action="{{ url_for('delete_series', series_id=s.id) }}" method="post" class="d-inline" onsubmit="return confirm('Delete this series?')">
-              <button class="btn btn-danger btn-sm" type="submit">Delete</button>
-            </form>
-          </td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-    <a class="btn btn-success mt-3" href="{{ url_for('create_series') }}">+ Create New Series</a>
-  </div>
+<!-- Page Header Section -->
+<div class="sm:flex sm:items-center sm:justify-between mb-8">
+    <div class="sm:flex-auto">
+        <h1 class="text-2xl font-semibold text-gray-900">Test Series Dashboard</h1>
+        <p class="mt-2 text-sm text-gray-700">
+            Manage and analyze your test series. View detailed analytics, track progress, and manage assessments all in one place.
+        </p>
+    </div>
+    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+        <a href="{{ url_for('create_series') }}"
+           class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+            Create New Series
+        </a>
+    </div>
 </div>
+
+<!-- Series List Section -->
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    {% if series_list %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Series Name
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Tests
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Last Updated
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for s in series_list %}
+                        <tr class="hover:bg-gray-50 transition-colors duration-200">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-blue-100">
+                                        <span class="text-blue-700 font-semibold text-sm">
+                                            {{ s.name[:2].upper() }}
+                                        </span>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">{{ s.name }}</div>
+                                        <div class="text-sm text-gray-500">ID: {{ s.id[:8] }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        {{ s.tests|length }} Tests
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% if s.tests %}
+                                    {{ s.last_updated|default('Not available', true) }}
+                                {% else %}
+                                    No tests yet
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if s.tests|length > 0 %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Active
+                                    </span>
+                                {% else %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        Empty
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex justify-end space-x-2">
+                                    <a href="{{ url_for('view_series', series_id=s.id) }}"
+                                       class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        <svg class="-ml-0.5 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        View
+                                    </a>
+                                    <form action="{{ url_for('delete_series', series_id=s.id) }}" 
+                                          method="post" 
+                                          class="inline-block"
+                                          onsubmit="return confirm('Are you sure you want to delete this series? This action cannot be undone.')">
+                                        <button type="submit"
+                                                class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                            <svg class="-ml-0.5 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-12 px-4 sm:px-6 lg:px-8">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v20c0 4.418 7.163 8 16 8s16-3.582 16-8V14M8 14c0 4.418 7.163 8 16 8s16-3.582 16-8M8 14c0-4.418 7.163-8 16-8s16 3.582 16 8m0 0v14m0-4c0 4.418-7.163 8-16 8S8 28.418 8 24v-4"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No Test Series</h3>
+            <p class="mt-1 text-sm text-gray-500">Get started by creating a new test series.</p>
+            <div class="mt-6">
+                <a href="{{ url_for('create_series') }}"
+                   class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Create New Series
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Quick Stats Section -->
+{% if series_list %}
+    <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <!-- Total Series Card -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-6 w-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                Total Series
+                            </dt>
+                            <dd class="flex items-baseline">
+                                <div class="text-2xl font-semibold text-gray-900">
+                                    {{ series_list|length }}
+                                </div>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Tests Card -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-6 w-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                Total Tests
+                            </dt>
+                            <dd class="flex items-baseline">
+                                <div class="text-2xl font-semibold text-gray-900">
+                                    {{ series_list|map(attribute='tests')|map('length')|sum }}
+                                </div>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Series Card -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-6 w-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                Active Series
+                            </dt>
+                            <dd class="flex items-baseline">
+                                <div class="text-2xl font-semibold text-gray-900">
+                                    {{ series_list|selectattr('tests')|list|length }}
+                                </div>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Search and Filter Section -->
+<div class="mt-8 bg-white shadow rounded-lg p-6">
+    <div class="space-y-6 sm:space-y-5">
+        <div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Search and Filter</h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">Find specific test series or filter by various criteria.</p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2 lg:grid-cols-3">
+            <!-- Search Input -->
+            <div>
+                <label for="search" class="block text-sm font-medium text-gray-700">Search Series</label>
+                <div class="mt-1 relative rounded-md shadow-sm">
+                    <input type="text" 
+                           name="search" 
+                           id="search" 
+                           class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-4 pr-10 sm:text-sm border-gray-300 rounded-md"
+                           placeholder="Search by name..."
+                           onkeyup="filterSeries()">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Filter -->
+            <div>
+                <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                <select id="status" 
+                        name="status" 
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                        onchange="filterSeries()">
+                    <option value="all">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="empty">Empty</option>
+                </select>
+            </div>
+
+            <!-- Sort By -->
+            <div>
+                <label for="sort" class="block text-sm font-medium text-gray-700">Sort By</label>
+                <select id="sort" 
+                        name="sort" 
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                        onchange="sortSeries()">
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                    <option value="tests-desc">Most Tests</option>
+                    <option value="tests-asc">Least Tests</option>
+                    <option value="recent">Recently Updated</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block page_scripts %}
+<script>
+    // Enhanced filtering and sorting functionality
+    function filterSeries() {
+        const searchTerm = document.getElementById('search').value.toLowerCase();
+        const statusFilter = document.getElementById('status').value;
+        const rows = document.querySelectorAll('tbody tr');
+
+        rows.forEach(row => {
+            const seriesName = row.querySelector('td:first-child').textContent.toLowerCase();
+            const hasTests = row.querySelector('.bg-green-100') !== null;
+            let showRow = seriesName.includes(searchTerm);
+
+            if (statusFilter === 'active' && !hasTests) showRow = false;
+            if (statusFilter === 'empty' && hasTests) showRow = false;
+
+            row.style.display = showRow ? '' : 'none';
+        });
+
+        updateEmptyState();
+    }
+
+    function sortSeries() {
+        const sortBy = document.getElementById('sort').value;
+        const tbody = document.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        rows.sort((a, b) => {
+            const aName = a.querySelector('td:first-child').textContent;
+            const bName = b.querySelector('td:first-child').textContent;
+            const aTests = parseInt(a.querySelector('.bg-blue-100').textContent);
+            const bTests = parseInt(b.querySelector('.bg-blue-100').textContent);
+
+            switch (sortBy) {
+                case 'name-asc':
+                    return aName.localeCompare(bName);
+                case 'name-desc':
+                    return bName.localeCompare(aName);
+                case 'tests-desc':
+                    return bTests - aTests;
+                case 'tests-asc':
+                    return aTests - bTests;
+                case 'recent':
+                    const aDate = a.querySelector('td:nth-child(3)').textContent;
+                    const bDate = b.querySelector('td:nth-child(3)').textContent;
+                    return new Date(bDate) - new Date(aDate);
+                default:
+                    return 0;
+            }
+        });
+
+        rows.forEach(row => tbody.appendChild(row));
+    }
+
+    function updateEmptyState() {
+        const tbody = document.querySelector('tbody');
+        const rows = tbody.querySelectorAll('tr[style="display: none"]');
+        const noResultsDiv = document.querySelector('#no-results');
+        
+        if (rows.length === tbody.querySelectorAll('tr').length) {
+            if (!noResultsDiv) {
+                const div = document.createElement('tr');
+                div.id = 'no-results';
+                div.innerHTML = `
+                    <td colspan="5" class="px-6 py-10 text-center">
+                        <div class="text-gray-500">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            <p class="mt-2 text-sm font-medium">No matching series found</p>
+                            <p class="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria</p>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(div);
+            }
+        } else if (noResultsDiv) {
+            noResultsDiv.remove();
+        }
+    }
+
+    // Initialize tooltips and other enhancements
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize any third-party components
+        initializeComponents();
+        
+        // Add keyboard navigation
+        enableKeyboardNavigation();
+        
+        // Initialize responsive handlers
+        setupResponsiveHandlers();
+    });
+
+    function initializeComponents() {
+        // Add any third-party component initialization here
+    }
+
+    function enableKeyboardNavigation() {
+        // Add keyboard navigation for accessibility
+        const focusableElements = document.querySelectorAll(
+            'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        
+        focusableElements.forEach(el => {
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    el.click();
+                }
+            });
+        });
+    }
+
+    function setupResponsiveHandlers() {
+        // Add responsive behavior handlers
+        const handleResize = () => {
+            const table = document.querySelector('table');
+            const windowWidth = window.innerWidth;
+            
+            if (windowWidth < 640) {
+                table.classList.add('table-compact');
+            } else {
+                table.classList.remove('table-compact');
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+        handleResize();
+    }
+</script>
+{% endblock %}
 {% endblock %}

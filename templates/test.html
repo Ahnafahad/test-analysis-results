@@ -1,54 +1,230 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="mb-4">Test: {{ test_name }}</h1>
-
-<div class="card shadow-sm mb-4">
-  <div class="card-header bg-dark text-light">
-    <h5 class="mb-0">Student Results</h5>
-  </div>
-  <div class="card-body">
-    <table class="table table-bordered table-hover">
-      <thead class="thead-dark">
-        <tr>
-          <th>Rank</th>
-          <th>ID</th>
-          <th>Name</th>
-          <th>1 Marks</th>
-          <th>2 Marks</th>
-          <th>3 Marks</th>
-          <th>Total Marks in MCQ</th>
-          <th>Rank in MCQ</th>
-          {% if essays_included %}
-          <th>Essay 1</th>
-          <th>Essay 2</th>
-          <th>Essay 3</th>
-          <th>Essay 4</th>
-          {% endif %}
-          <th>Total Marks</th>
-        </tr>
-      </thead>
-      <tbody>
-      {% for s in students %}
-        <tr>
-          <td>{{ s["Rank"] if s["Rank"] == s["Rank"] else "N/A" }}</td>
-          <td>{{ s["ID"] if s["ID"] == s["ID"] else "" }}</td>
-          <td>{{ s["Name"] if s["Name"] == s["Name"] else "Absent" }}</td>
-          <td>{{ s["1 Marks"] if "1 Marks" in s else "" }}</td>
-          <td>{{ s["2 Marks"] if "2 Marks" in s else "" }}</td>
-          <td>{{ s["3 Marks"] if "3 Marks" in s else "" }}</td>
-          <td>{{ s["Total Marks in MCQ"] if "Total Marks in MCQ" in s else "" }}</td>
-          <td>{{ s["Rank in MCQ"] if "Rank in MCQ" in s else "" }}</td>
-          {% if essays_included %}
-          <td>{{ s["Essay 1"] if "Essay 1" in s else "" }}</td>
-          <td>{{ s["Essay 2"] if "Essay 2" in s else "" }}</td>
-          <td>{{ s["Essay 3"] if "Essay 3" in s else "" }}</td>
-          <td>{{ s["Essay 4"] if "Essay 4" in s else "" }}</td>
-          {% endif %}
-          <td>{{ s["Total Marks"] if "Total Marks" in s else "" }}</td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-  </div>
+<!-- Page Header with Enhanced Styling and Metadata -->
+<div class="mb-8">
+    <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-gray-900 flex items-center">
+            <span>Test: {{ test_name }}</span>
+            <span class="ml-3 px-3 py-1 text-sm font-medium bg-blue-100 text-blue-800 rounded-full">
+                {{ students|length }} Students
+            </span>
+        </h1>
+        <div class="flex space-x-4">
+            <!-- Export Options -->
+            <button onclick="exportTableToCSV('test-results.csv')" 
+                    class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <svg class="mr-2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export CSV
+            </button>
+            <button onclick="window.print()" 
+                    class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <svg class="mr-2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Print
+            </button>
+        </div>
+    </div>
 </div>
+
+<!-- Main Content Card -->
+<div class="bg-white rounded-lg shadow overflow-hidden">
+    <!-- Table Container with Responsive Scroll -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <!-- Table Header -->
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50">Name</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Section 1</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Section 2</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Section 3</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MCQ Total</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MCQ Rank</th>
+                    {% if essays_included %}
+                        {% for i in range(1, 5) %}
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Essay {{ i }}</th>
+                        {% endfor %}
+                    {% endif %}
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Marks</th>
+                </tr>
+            </thead>
+
+            <!-- Table Body -->
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% if students %}
+                    {% for s in students %}
+                        <tr class="hover:bg-gray-50 transition-colors duration-200">
+                            <!-- Rank with Conditional Formatting -->
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                {% if s["Rank"] == s["Rank"] %}
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                        {% if s["Rank"] <= 3 %}bg-green-100 text-green-800
+                                        {% elif s["Rank"] <= 10 %}bg-blue-100 text-blue-800
+                                        {% else %}text-gray-900{% endif %}">
+                                        {{ s["Rank"] }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-gray-400">N/A</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Student ID -->
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ s["ID"]|int if s["ID"] == s["ID"] else "" }}
+                            </td>
+
+                            <!-- Student Name - Sticky Column -->
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white">
+                                {% if s["Name"] == s["Name"] %}
+                                    {{ s["Name"] }}
+                                {% else %}
+                                    <span class="text-red-500 font-medium">Absent</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Section Marks with Performance Indicators -->
+                            {% for section in [1, 2, 3] %}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    {% if s[section ~ " Marks"] is defined and s[section ~ " Marks"] == s[section ~ " Marks"] %}
+                                        <div class="flex items-center">
+                                            {{ "%.1f"|format(s[section ~ " Marks"]) }}
+                                            {% if s[section ~ " Marks"] >= 80 %}
+                                                <span class="ml-2 text-green-500" title="Excellent Performance">●</span>
+                                            {% elif s[section ~ " Marks"] >= 60 %}
+                                                <span class="ml-2 text-blue-500" title="Good Performance">●</span>
+                                            {% elif s[section ~ " Marks"] >= 40 %}
+                                                <span class="ml-2 text-yellow-500" title="Average Performance">●</span>
+                                            {% else %}
+                                                <span class="ml-2 text-red-500" title="Needs Improvement">●</span>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-gray-400">-</span>
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+
+                            <!-- MCQ Total and Rank -->
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                {{ "%.1f"|format(s["Total Marks in MCQ"]) if "Total Marks in MCQ" in s else "-" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                {{ s["Rank in MCQ"]|int if "Rank in MCQ" in s else "-" }}
+                            </td>
+
+                            <!-- Essay Scores -->
+                            {% if essays_included %}
+                                {% for i in range(1, 5) %}
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        {{ "%.1f"|format(s["Essay " ~ i]) if "Essay " ~ i in s else "-" }}
+                                    </td>
+                                {% endfor %}
+                            {% endif %}
+
+                            <!-- Total Marks with Visual Indicator -->
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold">
+                                {% if "Total Marks" in s and s["Total Marks"] == s["Total Marks"] %}
+                                    <div class="flex items-center">
+                                        {{ "%.1f"|format(s["Total Marks"]) }}
+                                        <div class="ml-2 w-16 bg-gray-200 rounded-full h-1.5">
+                                            <div class="bg-blue-600 h-1.5 rounded-full" 
+                                                 style="width: {{ (s["Total Marks"] / 100) * 100 }}%">
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-gray-400">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <!-- No Data State -->
+                    <tr>
+                        <td colspan="{{ 12 if essays_included else 8 }}" class="px-6 py-12 text-center text-gray-500">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">No test results</h3>
+                            <p class="mt-1 text-sm text-gray-500">No students have taken this test yet.</p>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Print Styles -->
+<style media="print">
+    @page {
+        size: landscape;
+        margin: 1cm;
+    }
+    .no-print {
+        display: none !important;
+    }
+    .page-break {
+        page-break-after: always;
+    }
+    body {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+</style>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+    // Export table to CSV functionality
+    function exportTableToCSV(filename) {
+        const rows = document.querySelectorAll('table tr');
+        const csvContent = [];
+        
+        // Get headers
+        const headers = Array.from(rows[0].querySelectorAll('th'))
+            .map(header => header.textContent.trim());
+        csvContent.push(headers.join(','));
+        
+        // Get data rows
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const rowData = Array.from(row.querySelectorAll('td'))
+                .map(cell => {
+                    let text = cell.textContent.trim();
+                    // Escape commas and quotes
+                    if (text.includes(',') || text.includes('"')) {
+                        text = `"${text.replace(/"/g, '""')}"`;
+                    }
+                    return text;
+                });
+            csvContent.push(rowData.join(','));
+        }
+        
+        // Create and trigger download
+        const blob = new Blob([csvContent.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (navigator.msSaveBlob) {
+            navigator.msSaveBlob(blob, filename);
+        } else {
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add tooltip functionality if needed
+        const tooltips = document.querySelectorAll('[title]');
+        // Initialize your preferred tooltip library here
+    });
+</script>
 {% endblock %}
