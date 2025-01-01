@@ -719,6 +719,7 @@
             },
 
             questionAnalysis: (test, series) => {
+
     console.log("Rendering question analysis with test data:", test);
     
     const sections = series.sections;
@@ -750,14 +751,20 @@
                         ${Array.from({ length: 30 }, (_, i) => {
                             const questionKey = `Section${sectionId}-Q${i + 1}`;
                             const response = test.student_data[questionKey];
-                            const resultClass = response ? utils.getResultClass(response) : 'skipped';
+                            
+                            const resultClass = (response && typeof response === 'string' && 
+                                 (response.includes('(C)') || response.includes('(W)')) ? 
+                                 (response.includes('(C)') ? 'correct' : 'wrong') : 
+                               'skipped');
                             return `
                                 <div class="question-cell"
                                      data-result="${resultClass}"
                                      data-question="${questionKey}"
                                      data-response="${response || 'Not Attempted'}"
+                                     data-test-id="${state.selectedTestId}"
                                      onmouseover="handlers.showQuestionTooltip(event)"
                                      onmouseout="handlers.hideQuestionTooltip()">
+                                     onclick="handlers.showQuestionDetails(event)">
                                     ${i + 1}
                                 </div>
                             `;
