@@ -1567,71 +1567,52 @@ def add_test(series_id):
                     flash(f"Invalid Excel file: {msg}", "danger")
                     return redirect(url_for('view_series', series_id=series_id))
                 
-                # Load all sheets
-                logging.info("Loading sheets from uploaded file...")
-                xls = pd.ExcelFile(temp_upload)
-                upload_df = pd.read_excel(xls, sheet_name="Sheet1")
-                upload_df_sheet2 = pd.read_excel(xls, sheet_name="Sheet2")
-                upload_df_sheet3 = pd.read_excel(xls, sheet_name="Sheet3")
+                # Load all sheets with proper error handling
+                try:
+                    xls = pd.ExcelFile(temp_upload)
+                    upload_df = pd.read_excel(xls, sheet_name="Sheet1")
+                    upload_df_sheet2 = pd.read_excel(xls, sheet_name="Sheet2")
+                    upload_df_sheet3 = pd.read_excel(xls, sheet_name="Sheet3")
+                except Exception as e:
+                    logging.error(f"Error reading Excel sheets: {str(e)}")
+                    flash("Error reading Excel file sheets", "danger")
+                    return redirect(url_for('view_series', series_id=series_id))
                 
-                # Log loaded data
-                log_dataframe_info(upload_df, "Sheet1", "After Load")
-                log_dataframe_info(upload_df_sheet2, "Sheet2", "After Load")
-                log_dataframe_info(upload_df_sheet3, "Sheet3", "After Load")
-                
-                # Process Sheet1
-                logging.info("Processing Sheet1...")
-                upload_df = clean_data(upload_df)
+                # Generate new test ID
                 tid = str(uuid.uuid4())
-                upload_df["SeriesID"] = series_id
-                upload_df["TestID"] = tid
-                upload_df["TestName"] = test_name
                 
-                # Add identifiers to Sheet2 and Sheet3
-                logging.info("Adding identifiers to Sheet2 and Sheet3...")
-                upload_df_sheet2["SeriesID"] = series_id
-                upload_df_sheet2["TestID"] = tid
-                upload_df_sheet2["TestName"] = test_name
+                # Add identifiers to all sheets
+                for df in [upload_df, upload_df_sheet2, upload_df_sheet3]:
+                    df["SeriesID"] = series_id
+                    df["TestID"] = tid
+                    df["TestName"] = test_name
                 
-                upload_df_sheet3["SeriesID"] = series_id
-                upload_df_sheet3["TestID"] = tid
-                upload_df_sheet3["TestName"] = test_name
-                
-                # Load and combine existing data
-                logging.info("Loading existing data...")
+                # Load existing data from all sheets
                 main_df = load_main_data()
                 existing_sheet2, existing_sheet3 = load_additional_sheets()
                 
-                logging.info("Combining with existing data...")
+                # Properly combine data, preserving historical records
                 main_df = pd.concat([main_df, upload_df], ignore_index=True)
-                main_df = recompute_ranks(main_df, series_id, tid)
-                
                 new_sheet2 = pd.concat([existing_sheet2, upload_df_sheet2], ignore_index=True)
                 new_sheet3 = pd.concat([existing_sheet3, upload_df_sheet3], ignore_index=True)
                 
-                # Save all data
-                logging.info("Saving combined data...")
+                # Save all sheets with their complete historical data
                 if save_main_data(main_df, new_sheet2, new_sheet3):
-                    logging.info("Successfully saved all sheets")
-                    
-                    # Update configuration
+                    logging.info("Successfully saved all sheets with historical data preserved")
                     cfg[series_id]["tests"][tid] = test_name
                     save_series_config(cfg)
-                    
                     flash("Test added successfully", "success")
                 else:
                     flash("Error saving data", "danger")
-                
-                # Cleanup
-                logging.info("Cleaning up temporary files...")
+                    
+                # Clean up temporary files
                 if os.path.exists(temp_upload):
                     os.remove(temp_upload)
-                
+                    
                 return redirect(url_for('view_series', series_id=series_id))
                 
             except Exception as e:
                 logging.error(f"Error processing test upload: {str(e)}")
-                logging.error("Stack trace:", exc_info=True)
                 flash(f"Error processing Excel file: {str(e)}", "danger")
                 return redirect(url_for('view_series', series_id=series_id))
 
@@ -1639,7 +1620,6 @@ def add_test(series_id):
         
     except Exception as e:
         logging.error(f"Unhandled error in add_test: {str(e)}")
-        logging.error("Stack trace:", exc_info=True)
         flash("An unexpected error occurred", "danger")
         return redirect(url_for('home'))
         
